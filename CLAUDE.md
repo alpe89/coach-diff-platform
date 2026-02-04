@@ -3,7 +3,7 @@
 ## Overview
 AI-powered League of Legends coach API. Transforms Riot API data into 3 actionable improvement priorities.
 
-**Tech Stack:** Java 21, Spring Boot 3.x, PostgreSQL, Redis, Maven, Hexagonal Architecture
+**Tech Stack:** Java 21, Spring Boot 4.0, PostgreSQL, Redis, Maven, Hexagonal Architecture
 
 ---
 
