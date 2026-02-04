@@ -8,4 +8,14 @@ public record SummonerProfile(
     Division division,
     int lp,
     int wins,
-    int losses) {}
+    int losses) {
+  public int gamesPlayed() {
+    return wins + losses;
+  }
+
+  public Double winRate() {
+    if (gamesPlayed() == 0) return 0.0;
+
+    return (double) wins / gamesPlayed();
+  }
+}
