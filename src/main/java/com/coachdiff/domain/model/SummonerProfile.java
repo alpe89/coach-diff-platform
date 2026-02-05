@@ -1,5 +1,7 @@
 package com.coachdiff.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record SummonerProfile(
     String name,
     String tag,
@@ -9,10 +11,12 @@ public record SummonerProfile(
     int lp,
     int wins,
     int losses) {
+  @JsonProperty("gamesPlayed")
   public int gamesPlayed() {
     return wins + losses;
   }
 
+  @JsonProperty("winRate")
   public Double winRate() {
     if (gamesPlayed() == 0) return 0.0;
 

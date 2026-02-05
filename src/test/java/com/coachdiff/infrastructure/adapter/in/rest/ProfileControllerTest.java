@@ -12,6 +12,8 @@ import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.domain.port.in.FetchProfilePort;
+import java.math.BigDecimal;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,11 @@ public class ProfileControllerTest {
         .andExpect(jsonPath("$.division").value("III"))
         .andExpect(jsonPath("$.lp").value(20))
         .andExpect(jsonPath("$.wins").value(5))
-        .andExpect(jsonPath("$.losses").value(8));
+        .andExpect(jsonPath("$.losses").value(8))
+        .andExpect(
+            jsonPath("$.winRate")
+                .value(Matchers.closeTo(new BigDecimal("0.38"), new BigDecimal("0.01"))))
+        .andExpect(jsonPath("$.gamesPlayed").value(13));
   }
 
   @Test
