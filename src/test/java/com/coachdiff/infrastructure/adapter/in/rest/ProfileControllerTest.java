@@ -10,6 +10,7 @@ import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.domain.port.in.FetchProfilePort;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,9 @@ public class ProfileControllerTest {
   void setUp() {
     when(fetchProfilePort.getSummonerProfile(any(), any()))
         .thenReturn(
-            new SummonerProfile(
-                "Summoner", "#1234", Region.EUW1, Tier.DIAMOND, Division.III, 20, 5, 8));
+            Optional.of(
+                new SummonerProfile(
+                    "Summoner", "#1234", Region.EUW1, Tier.DIAMOND, Division.III, 20, 5, 8)));
   }
 
   @Test
@@ -47,7 +49,7 @@ public class ProfileControllerTest {
 
   @Test
   public void shouldReturnNotFound() throws Exception {
-    when(fetchProfilePort.getSummonerProfile(any(), any())).thenReturn(null);
+    when(fetchProfilePort.getSummonerProfile(any(), any())).thenReturn(Optional.empty());
 
     mockMvc.perform(get("/api/profile")).andExpect(status().isNotFound());
   }

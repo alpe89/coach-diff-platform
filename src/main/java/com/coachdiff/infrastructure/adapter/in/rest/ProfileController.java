@@ -2,6 +2,7 @@ package com.coachdiff.infrastructure.adapter.in.rest;
 
 import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.port.in.FetchProfilePort;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,12 +20,10 @@ public class ProfileController {
   @GetMapping("/profile")
   public ResponseEntity<SummonerProfile> getProfile() {
     // TODO: Update the hardcoded summoner profile values with the ones in the configs.
-    SummonerProfile fetchedProfile = fetchProfilePort.getSummonerProfile("Alpe", "#1989");
+    Optional<SummonerProfile> fetchedProfile = fetchProfilePort.getSummonerProfile("Alpe", "#1989");
 
-    if (fetchedProfile == null) {
-      return ResponseEntity.notFound().build();
-    }
-
-    return ResponseEntity.ok(fetchedProfile);
+    return fetchedProfile
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 }
