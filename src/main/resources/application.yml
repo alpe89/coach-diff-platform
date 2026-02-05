@@ -1,0 +1,24 @@
+spring:
+  mvc:
+    log-request-details: true
+
+logging:
+  level:
+    sun:
+      rmi:
+        transport:
+          tcp: ERROR
+    org:
+      springframework:
+        web:
+          servlet:
+            DispatcherServlet: DEBUG
+
+coach-diff:
+  default-summoner:
+    name: ${RIOT_SUMMONER_NAME}
+    tag: ${RIOT_SUMMONER_TAG}
+
+riot:
+  api:
+    key: ${RIOT_API_KEY}
