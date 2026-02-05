@@ -9,7 +9,9 @@ import com.coachdiff.infrastructure.adapter.out.dto.RiotAccountDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotLeagueDTO;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -18,11 +20,12 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
   private final RestClient riotAccountsRestClient;
   private final RestClient riotLeagueRestClient;
 
-  public ProfileDataAdapter(RestClient.Builder restClientBuilder) {
-    this.riotAccountsRestClient =
-        restClientBuilder.clone().baseUrl("https://europe.api.riotgames.com").build();
-    this.riotLeagueRestClient =
-        restClientBuilder.clone().baseUrl("https://euw1.api.riotgames.com").build();
+  public ProfileDataAdapter(
+      RestClient.Builder restClientBuilder,
+      @Value("${riot.api.base-url-accounts}") String riotAccountsBaseUrl,
+      @Value("${riot.api.base-url-league}") String riotLeagueBaseUrl) {
+    this.riotAccountsRestClient = restClientBuilder.clone().baseUrl(riotAccountsBaseUrl).build();
+    this.riotLeagueRestClient = restClientBuilder.clone().baseUrl(riotLeagueBaseUrl).build();
   }
 
   @Override
@@ -33,6 +36,7 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
             .get()
             .uri("/riot/account/v1/accounts/by-riot-id/{name}/{tag}", name, tag)
             .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {})
             .body(RiotAccountDTO.class);
 
     return Optional.ofNullable(riotAccount)

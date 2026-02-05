@@ -22,3 +22,5 @@ coach-diff:
 riot:
   api:
     key: ${RIOT_API_KEY}
+    base-url-accounts: https://europe.api.riotgames.com
+    base-url-league: https://euw1.api.riotgames.com
