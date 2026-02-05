@@ -2,7 +2,6 @@ package com.coachdiff.infrastructure.adapter.in.rest;
 
 import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.port.in.FetchProfilePort;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +25,8 @@ public class ProfileController {
 
   @GetMapping("/profile")
   public ResponseEntity<SummonerProfile> getProfile() {
-    Optional<SummonerProfile> fetchedProfile =
-        fetchProfilePort.getSummonerProfile(summonerName, summonerTag);
+    SummonerProfile fetchedProfile = fetchProfilePort.getSummonerProfile(summonerName, summonerTag);
 
-    return fetchedProfile
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    return ResponseEntity.ok(fetchedProfile);
   }
 }

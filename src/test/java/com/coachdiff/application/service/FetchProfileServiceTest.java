@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.Division;
 import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.SummonerProfile;
@@ -32,20 +33,17 @@ class FetchProfileServiceTest {
 
   @Test
   void shouldGetSummonerProfile() {
-    Optional<SummonerProfile> profile =
+    SummonerProfile profile =
         new FetchProfileService(loadProfileDataPort).getSummonerProfile("aaa", "bbb");
-    assertThat(profile)
-        .isPresent()
-        .get()
-        .extracting(SummonerProfile::name, SummonerProfile::tier)
-        .containsExactly("Summoner", Tier.EMERALD);
+    assertThat(profile.name()).isEqualTo("Summoner");
+    assertThat(profile.tier()).isEqualTo(Tier.EMERALD);
   }
 
   @Test
-  void shouldReturnEmptyOptionalWhenProfileNotFound() {
+  void shouldThrowWhenProfileNotFound() {
     when(loadProfileDataPort.loadProfileData(any(), any())).thenReturn(Optional.empty());
-    Optional<SummonerProfile> profile =
-        new FetchProfileService(loadProfileDataPort).getSummonerProfile("aaa", "bbb");
-    assertThat(profile).isEmpty();
+    assertThrows(
+        SummonerProfileNotFoundException.class,
+        () -> new FetchProfileService(loadProfileDataPort).getSummonerProfile("aaa", "bbb"));
   }
 }
