@@ -1,9 +1,10 @@
 # CoachDiff.ai Backend
 
 ## Overview
-AI-powered League of Legends coach API. Transforms Riot API data into 3 actionable improvement priorities.
 
-**Tech Stack:** Java 21, Spring Boot 4.0, PostgreSQL, Redis, Maven, Hexagonal Architecture
+AI-powered League of Legends coach API. Fetches your summoner profile and ranked data from Riot API.
+
+**Tech Stack:** Java 25, Spring Boot 4.0.1, Maven, Hexagonal Architecture
 
 ---
 
@@ -41,23 +42,39 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 
 ---
 
+## MVP Scope (DO NOT CROSS THIS LINE 🚫)
+
+- Retrieve the **user's own profile** only
+- Summoner name/tag are **hardcoded** (env variables), NOT query parameters
+- NO rank comparison features
+- NO AI/OpenAI suggestions
+- NO multi-user support
+- The learning IS the product, not the app
+
+---
+
 ## Project Structure
 
 ```
 src/main/java/com/coachdiff/
 ├── Application.java
 ├── domain/
-│   ├── model/          # SummonerProfile, RankInfo, MetricComparison, etc.
-│   ├── port/in/        # Inbound ports (use cases)
-│   ├── port/out/       # Outbound ports (repositories, external APIs)
-│   └── service/        # MetricsCalculator, RankComparator
+│   ├── exception/       # ErrorCode, SummonerProfileNotFoundException
+│   ├── model/           # SummonerProfile, Tier, Division, Region
+│   └── port/
+│       ├── in/          # FetchProfilePort (inbound use case)
+│       └── out/         # LoadProfileDataPort (outbound contract)
 ├── application/
-│   └── service/        # FetchProfileService, GenerateSuggestionsService
+│   └── service/         # FetchProfileService
 └── infrastructure/
-    ├── adapter/in/rest/      # REST controllers
-    ├── adapter/out/          # persistence, external, cache
-    └── config/
+    ├── adapter/
+    │   ├── in/rest/     # ProfileController, GlobalExceptionHandler, ApiError
+    │   └── out/         # ProfileDataAdapter
+    │       └── dto/     # RiotAccountDTO, RiotLeagueDTO
+    └── config/          # RiotApiConfig
 ```
+
+**Dependency direction:** `Infrastructure → Application → Domain`
 
 ---
 
@@ -65,25 +82,15 @@ src/main/java/com/coachdiff/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/profile | Summoner profile with metrics |
-| GET | /api/suggestions | Top 3 AI improvement priorities |
-| POST | /api/suggestions/refresh | Regenerate suggestions |
-| GET | /api/matches | Last 20 ranked matches |
-
----
-
-## Key Metrics Tracked
-
-- CS/min, KDA, Vision Score/min, Kill Participation %, Deaths, Gold diff @15
-- Compare against **median** for current rank and one tier above
-- Gap > 10% = improvement priority
+| GET | `/api/profile` | Summoner profile with rank data |
 
 ---
 
 ## External APIs
 
-**Riot API:** Account-V1, Summoner-V4, League-V4, Match-V5
-**OpenAI:** GPT-4o-mini for coaching suggestions
+**Riot API:**
+- **Account-V1** — resolve summoner name/tag → PUUID
+- **League-V4** — fetch ranked data by PUUID
 
 ---
 
@@ -91,31 +98,38 @@ src/main/java/com/coachdiff/
 
 - **Service** suffix for application services (not UseCase)
 - **Adapter** suffix for infrastructure adapters
-- **Port** suffix for outbound ports
+- **Port** suffix for ports (inbound and outbound)
 - **Dto** suffix for data transfer objects
+- Java `record` for immutable data (DTOs, domain models)
+- `RestClient` for HTTP calls (Spring 6.1+)
 - All code and comments in **English**
+
+### Testing Strategy
+
+- `@WebMvcTest` + MockMvc for controller tests
+- Unit tests with Mockito for application services
+- WireMock for external API mocking in adapter tests
+- AssertJ for fluent assertions
+
+### Code Quality
+
+- **Spotless** (google-java-format) — runs on `validate` phase
+- **Checkstyle** (google_checks.xml) — runs on `validate` phase
 
 ---
 
 ## Tools (USE THESE, FUTURE CLAUDE 🔧)
 
 ### Context7 MCP
+
 Fetch up-to-date library documentation. First resolve library ID, then query docs.
-**⚠️ USE THIS** when explaining Spring Boot features, annotations, or patterns - get the latest docs, don't rely on training data!
+**⚠️ USE THIS** when explaining Spring Boot features, annotations, or patterns — get the latest docs, don't rely on training data!
 
 ### Skills
-- `/java-architect` - Spring Boot, JPA, reactive patterns
-- `/senior-backend` - REST APIs, database optimization
-- `/code-reviewer` - Code review and PR analysis
+
+- `/java-architect` — Spring Boot, JPA, reactive patterns
+- `/senior-backend` — REST APIs, database optimization
+- `/senior-architect` — System design, architecture decisions
+- `/code-reviewer` — Code review and PR analysis
 
 **⚠️ USE THESE** when diving into architecture decisions or code review!
-
----
-
-## Progress Tracker
-
-**Session 1 (2026-02-03):**
-- ✅ Project structure created (single Maven module)
-- ✅ Application.java - first compile!
-- ✅ Spring Boot running on port 8080
-- 🔜 Next: Health endpoint + Hexagonal Architecture skeleton
