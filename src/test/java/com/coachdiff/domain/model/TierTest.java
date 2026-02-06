@@ -24,6 +24,20 @@ public class TierTest {
   @ParameterizedTest
   @EnumSource(
       value = Tier.class,
+      mode = EnumSource.Mode.EXCLUDE,
+      names = {"IRON"})
+  public void shouldReturnPreviousTier(Tier currentTier) {
+    assertThat(currentTier.previousTier().isPresent());
+  }
+
+  @Test
+  public void shouldReturnEmptyTierForIron() {
+    assertThat(Tier.IRON.previousTier()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = Tier.class,
       mode = EnumSource.Mode.INCLUDE,
       names = {"MASTER", "GRANDMASTER", "CHALLENGER"})
   public void shouldReturnIsApexTier(Tier currentTier) {

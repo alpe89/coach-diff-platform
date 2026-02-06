@@ -1,0 +1,9 @@
+## Ignore useless stuff for Docker
+
+target
+.claude
+.idea
+.git
+.env
+src/main/resources/application-local.yml
+src/test

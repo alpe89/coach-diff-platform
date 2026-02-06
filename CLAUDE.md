@@ -118,6 +118,16 @@ src/main/java/com/coachdiff/
 
 ---
 
+## Deployment
+
+- **GCP Cloud Run** for hosting (Docker-based, scales to zero)
+- **GCP Artifact Registry** for Docker images
+- **GitHub Actions** for CI/CD (mvn verify + build/push image)
+- **Terraform** for infrastructure-as-code (after manual gcloud setup)
+- Multi-stage Dockerfile: Maven + JDK build → slim JRE runtime
+
+---
+
 ## Tools (USE THESE, FUTURE CLAUDE 🔧)
 
 ### Context7 MCP

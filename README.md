@@ -74,7 +74,9 @@ mvn spring-boot:run
   "division": "II",
   "lp": 45,
   "wins": 120,
-  "losses": 110
+  "losses": 110,
+  "gamesPlayed": 230,
+  "winRate": 0.522
 }
 ```
 
@@ -113,9 +115,32 @@ Dependency direction: `Infrastructure → Application → Domain`
 # Run tests
 mvn test
 
+# Coverage report (generated after mvn test)
+open target/site/jacoco/index.html
+
 # Format code (Spotless + google-java-format)
 mvn spotless:apply
 
 # Check formatting + linting
 mvn validate
+```
+
+## Deployment
+
+**Platform:** Google Cloud Platform (Cloud Run + Artifact Registry)
+
+**Infrastructure (future):** Terraform
+
+### Docker
+
+```bash
+# Build image
+docker build -t coach-diff .
+
+# Run locally
+docker run -p 8080:8080 \
+  -e RIOT_API_KEY=your-key \
+  -e RIOT_SUMMONER_NAME=your-name \
+  -e RIOT_SUMMONER_TAG=your-tag \
+  coach-diff
 ```

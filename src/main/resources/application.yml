@@ -16,8 +16,8 @@ logging:
 
 coach-diff:
   default-summoner:
-    name: ${RIOT_SUMMONER_NAME}
-    tag: ${RIOT_SUMMONER_TAG}
+    name: ${DEFAULT_SUMMONER_NAME}
+    tag: ${DEFAULT_SUMMONER_TAG}
 
 riot:
   api:

@@ -1,0 +1,36 @@
+name: coach-diff CD
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+      - run: mvn verify
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: 'coach-diff'
+          credentials_json: ${{ secrets.GCP_DEPLOY }}
+      - run: gcloud auth configure-docker europe-west1-docker.pkg.dev
+      - run: docker build -t europe-west1-docker.pkg.dev/coach-diff/coach-diff/coach-diff:latest .
+      - run: docker push europe-west1-docker.pkg.dev/coach-diff/coach-diff/coach-diff:latest
+      - uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          image: europe-west1-docker.pkg.dev/coach-diff/coach-diff/coach-diff:latest
+          service: coach-diff
+          region: europe-west1
