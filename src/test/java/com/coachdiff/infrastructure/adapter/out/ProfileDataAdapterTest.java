@@ -2,8 +2,13 @@ package com.coachdiff.infrastructure.adapter.out;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.coachdiff.domain.model.SummonerProfile;
+import com.coachdiff.infrastructure.adapter.out.exception.RiotAuthenticationException;
+import com.coachdiff.infrastructure.adapter.out.exception.RiotRateLimitException;
+import com.coachdiff.infrastructure.adapter.out.exception.RiotUnknownException;
+import com.coachdiff.infrastructure.config.RiotProperties;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.util.Optional;
@@ -26,8 +31,24 @@ class ProfileDataAdapterTest {
                     """)));
 
     stubFor(
+        get(urlPathEqualTo("/riot/account/v1/accounts/by-riot-id/api/error"))
+            .willReturn(
+                okJson(
+                    """
+                    { "puuid": "puuid-api-error", "gameName": "test", "tagLine": "1234" }
+                    """)));
+
+    stubFor(
         get(urlPathEqualTo("/riot/account/v1/accounts/by-riot-id/not/found"))
             .willReturn(notFound()));
+
+    stubFor(
+        get(urlPathEqualTo("/riot/account/v1/accounts/by-riot-id/unexpected/error"))
+            .willReturn(badRequest()));
+
+    stubFor(
+        get(urlPathEqualTo("/riot/account/v1/accounts/by-riot-id/rate/limit"))
+            .willReturn(aResponse().withStatus(429)));
 
     stubFor(
         get(urlPathEqualTo("/lol/summoner/v4/summoners/by-puuid/abc-def-ghi"))
@@ -41,6 +62,10 @@ class ProfileDataAdapterTest {
                         "summonerLevel": 302
                     }
                     """)));
+
+    stubFor(
+        get(urlPathEqualTo("/lol/summoner/v4/summoners/by-puuid/puuid-api-error"))
+            .willReturn(aResponse().withStatus(403)));
 
     stubFor(
         get(urlPathEqualTo("/lol/summoner/v4/summoners/by-puuid/not/found"))
@@ -69,15 +94,38 @@ class ProfileDataAdapterTest {
                     ]\
                     """)));
 
-    RestClient.Builder riotRestClient = RestClient.builder().baseUrl(wmInfo.getHttpBaseUrl());
-    this.profileDataAdapter =
-        new ProfileDataAdapter(
-            riotRestClient,
-            wmInfo.getHttpBaseUrl(),
-            wmInfo.getHttpBaseUrl(),
-            wmInfo.getHttpBaseUrl(),
-            "https://ddragon-mock.com/cdn",
-            "16.3.1");
+    stubFor(
+        get(urlPathEqualTo("/lol/league/v4/entries/by-puuid/puuid-api-error"))
+            .willReturn(
+                okJson(
+                    """
+                    [
+                        {
+                            "leagueId": "----------------",
+                            "queueType": "RANKED_SOLO_5x5",
+                            "tier": "SILVER",
+                            "rank": "III",
+                            "puuid": "abc-def-ghi",
+                            "leaguePoints": 40,
+                            "wins": 3,
+                            "losses": 3,
+                            "veteran": false,
+                            "inactive": false,
+                            "freshBlood": false,
+                            "hotStreak": false
+                        }
+                    ]\
+                    """)));
+
+    var wmBaseUrl = wmInfo.getHttpBaseUrl();
+
+    var riotRestClient = RestClient.builder().baseUrl(wmBaseUrl);
+    var apiProps = new RiotProperties.RiotApi("fake-key", wmBaseUrl, wmBaseUrl, wmBaseUrl);
+    var ddragonProps = new RiotProperties.RiotDdragon("https://ddragon-mock.com/cdn", "16.3.1");
+
+    var riotProperties = new RiotProperties(apiProps, ddragonProps);
+
+    this.profileDataAdapter = new ProfileDataAdapter(riotRestClient, riotProperties);
   }
 
   @Test
@@ -100,5 +148,29 @@ class ProfileDataAdapterTest {
   void shouldGetAnEmptyOptionalWhenSummonerNameOrTagIsInvalid() {
     Optional<SummonerProfile> profile = profileDataAdapter.loadProfileData("not", "found");
     assertThat(profile).isEmpty();
+  }
+
+  @Test
+  void shouldThrowWhenRateLimitIsReached() {
+    assertThatThrownBy(() -> profileDataAdapter.loadProfileData("rate", "limit"))
+        .isInstanceOf(RiotRateLimitException.class)
+        .message()
+        .isEqualTo("Encountered a rate limit issue with the Riot API");
+  }
+
+  @Test
+  void shouldThrowWhenRiotApiReturnsAnError() {
+    assertThatThrownBy(() -> profileDataAdapter.loadProfileData("api", "error"))
+        .isInstanceOf(RiotAuthenticationException.class)
+        .message()
+        .isEqualTo("Encountered a problem likely with the Riot API key");
+  }
+
+  @Test
+  void shouldThrowWhenRiotApiReturnsAnUnexpectedError() {
+    assertThatThrownBy(() -> profileDataAdapter.loadProfileData("unexpected", "error"))
+        .isInstanceOf(RiotUnknownException.class)
+        .message()
+        .isEqualTo("Unknown error on the Riot API");
   }
 }

@@ -8,10 +8,12 @@ import com.coachdiff.domain.port.out.LoadProfileDataPort;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotAccountDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotLeagueDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotSummonerDTO;
+import com.coachdiff.infrastructure.config.RiotProperties;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -19,24 +21,22 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class ProfileDataAdapter implements LoadProfileDataPort {
+  private static final Logger log = LoggerFactory.getLogger(ProfileDataAdapter.class);
   private final RestClient riotAccountsRestClient;
   private final RestClient riotLeagueRestClient;
   private final RestClient riotSummonerRestClient;
   private final String riotDdragonBaseUrl;
   private final String riotDdragonVersion;
 
-  public ProfileDataAdapter(
-      RestClient.Builder restClientBuilder,
-      @Value("${riot.api.base-url-accounts}") String riotAccountsBaseUrl,
-      @Value("${riot.api.base-url-league}") String riotLeagueBaseUrl,
-      @Value("${riot.api.base-url-summoner}") String riotSummonerBaseUrl,
-      @Value("${riot.ddragon.base-url}") String riotDdragonBaseUrl,
-      @Value("${riot.ddragon.version}") String riotDdragonVersion) {
-    this.riotAccountsRestClient = restClientBuilder.clone().baseUrl(riotAccountsBaseUrl).build();
-    this.riotLeagueRestClient = restClientBuilder.clone().baseUrl(riotLeagueBaseUrl).build();
-    this.riotSummonerRestClient = restClientBuilder.clone().baseUrl(riotSummonerBaseUrl).build();
-    this.riotDdragonBaseUrl = riotDdragonBaseUrl;
-    this.riotDdragonVersion = riotDdragonVersion;
+  public ProfileDataAdapter(RestClient.Builder restClientBuilder, RiotProperties riotProperties) {
+    this.riotAccountsRestClient =
+        restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlAccounts()).build();
+    this.riotLeagueRestClient =
+        restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlLeague()).build();
+    this.riotSummonerRestClient =
+        restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlSummoner()).build();
+    this.riotDdragonBaseUrl = riotProperties.ddragon().baseUrl();
+    this.riotDdragonVersion = riotProperties.ddragon().version();
   }
 
   @Override
@@ -47,7 +47,7 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
             .get()
             .uri("/riot/account/v1/accounts/by-riot-id/{name}/{tag}", name, tag)
             .retrieve()
-            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {})
+            .onStatus(HttpStatusCode::is4xxClientError, RiotExceptionHandler::handleRiotException)
             .body(RiotAccountDTO.class);
 
     return Optional.ofNullable(riotAccount)
@@ -70,8 +70,16 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
                         summonerData.map(
                             summoner -> composeSummonerProfileData(name, tag, summoner, league)));
               } catch (InterruptedException e) {
+                log.error("Thread interrupted while fetching profile data", e);
                 Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
+              } catch (StructuredTaskScope.FailedException e) {
+
+                if (e.getCause() instanceof RuntimeException re) {
+                  throw re;
+                }
+
+                throw new RuntimeException(e.getCause());
               }
             });
   }
@@ -82,6 +90,7 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
             .get()
             .uri("/lol/league/v4/entries/by-puuid/{puuid}", puuid)
             .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, RiotExceptionHandler::handleRiotException)
             .body(new ParameterizedTypeReference<>() {});
 
     return Optional.ofNullable(leagues)
@@ -95,22 +104,25 @@ public class ProfileDataAdapter implements LoadProfileDataPort {
             .get()
             .uri("/lol/summoner/v4/summoners/by-puuid/{puuid}", puuid)
             .retrieve()
-            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {})
+            .onStatus(HttpStatusCode::is4xxClientError, RiotExceptionHandler::handleRiotException)
             .body(RiotSummonerDTO.class));
   }
 
   private SummonerProfile composeSummonerProfileData(
       String name, String tag, RiotSummonerDTO summonerData, RiotLeagueDTO leagueData) {
-    return new SummonerProfile(
-        name,
-        tag,
-        Region.EUW1,
+    String profileURI =
         this.riotDdragonBaseUrl
             + "/"
             + this.riotDdragonVersion
             + "/img/profileicon/"
             + summonerData.profileIconId()
-            + ".png",
+            + ".png";
+
+    return new SummonerProfile(
+        name,
+        tag,
+        Region.EUW1,
+        profileURI,
         Tier.valueOf(leagueData.tier()),
         Division.valueOf(leagueData.rank()),
         leagueData.leaguePoints(),
