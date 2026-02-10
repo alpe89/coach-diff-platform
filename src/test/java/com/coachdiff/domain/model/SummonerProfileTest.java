@@ -16,7 +16,16 @@ class SummonerProfileTest {
   @BeforeEach
   void setUp() {
     this.summoner =
-        new SummonerProfile("Random", "#1234", Region.EUW1, Tier.IRON, Division.III, 0, 12, 4);
+        new SummonerProfile(
+            "Random",
+            "#1234",
+            Region.EUW1,
+            "https://ddragon.url",
+            Tier.IRON,
+            Division.III,
+            0,
+            12,
+            4);
   }
 
   @Test
@@ -32,7 +41,16 @@ class SummonerProfileTest {
   @Test
   void shouldReturnZeroWinRateForZeroGamesPlayed() {
     summoner =
-        new SummonerProfile("Random", "#1234", Region.EUW1, Tier.IRON, Division.III, 0, 0, 0);
+        new SummonerProfile(
+            "Random",
+            "#1234",
+            Region.EUW1,
+            "https://ddragon.url",
+            Tier.IRON,
+            Division.III,
+            0,
+            0,
+            0);
     assertThat(this.summoner.winRate()).isEqualTo(0.0);
   }
 
@@ -41,7 +59,15 @@ class SummonerProfileTest {
   void shouldReturnWinRate(int wins, int losses, double expectedWinRate) {
     summoner =
         new SummonerProfile(
-            "Random", "#1234", Region.EUW1, Tier.IRON, Division.III, 0, wins, losses);
+            "Random",
+            "#1234",
+            Region.EUW1,
+            "https://ddragon.url",
+            Tier.IRON,
+            Division.III,
+            0,
+            wins,
+            losses);
     assertThat(this.summoner.winRate()).isCloseTo(expectedWinRate, Offset.offset(0.001));
   }
 

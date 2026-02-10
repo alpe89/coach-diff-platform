@@ -6,6 +6,7 @@ public record SummonerProfile(
     String name,
     String tag,
     Region region,
+    String profileIconURI,
     Tier tier,
     Division division,
     int lp,

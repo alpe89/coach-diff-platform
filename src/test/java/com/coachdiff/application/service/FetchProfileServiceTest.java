@@ -28,7 +28,15 @@ class FetchProfileServiceTest {
         .thenReturn(
             Optional.of(
                 new SummonerProfile(
-                    "Summoner", "Tag", Region.EUW1, Tier.EMERALD, Division.I, 11, 5, 2)));
+                    "Summoner",
+                    "Tag",
+                    Region.EUW1,
+                    "https://ddragon.url",
+                    Tier.EMERALD,
+                    Division.I,
+                    11,
+                    5,
+                    2)));
   }
 
   @Test

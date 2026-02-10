@@ -24,3 +24,7 @@ riot:
     key: ${RIOT_API_KEY}
     base-url-accounts: https://europe.api.riotgames.com
     base-url-league: https://euw1.api.riotgames.com
+    base-url-summoner: https://euw1.api.riotgames.com
+  ddragon:
+    version: ${DDRAGON_VERSION:16.3.1}
+    base-url: https://ddragon.leagueoflegends.com/cdn

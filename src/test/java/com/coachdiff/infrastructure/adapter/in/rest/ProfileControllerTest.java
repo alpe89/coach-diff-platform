@@ -38,7 +38,15 @@ public class ProfileControllerTest {
     when(fetchProfilePort.getSummonerProfile("TestName", "TestTag"))
         .thenReturn(
             new SummonerProfile(
-                "Summoner", "#1234", Region.EUW1, Tier.DIAMOND, Division.III, 20, 5, 8));
+                "Summoner",
+                "#1234",
+                Region.EUW1,
+                "https://ddragon.url",
+                Tier.DIAMOND,
+                Division.III,
+                20,
+                5,
+                8));
   }
 
   @Test
@@ -48,6 +56,7 @@ public class ProfileControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Summoner"))
         .andExpect(jsonPath("$.tag").value("#1234"))
+        .andExpect(jsonPath("$.profileIconURI").value("https://ddragon.url"))
         .andExpect(jsonPath("$.tier").value("DIAMOND"))
         .andExpect(jsonPath("$.division").value("III"))
         .andExpect(jsonPath("$.lp").value(20))

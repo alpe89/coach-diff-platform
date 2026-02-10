@@ -30,6 +30,23 @@ class ProfileDataAdapterTest {
             .willReturn(notFound()));
 
     stubFor(
+        get(urlPathEqualTo("/lol/summoner/v4/summoners/by-puuid/abc-def-ghi"))
+            .willReturn(
+                okJson(
+                    """
+                    {
+                        "puuid": "abc-def-ghi",
+                        "profileIconId": 6762,
+                        "revisionDate": 1770672424000,
+                        "summonerLevel": 302
+                    }
+                    """)));
+
+    stubFor(
+        get(urlPathEqualTo("/lol/summoner/v4/summoners/by-puuid/not/found"))
+            .willReturn(notFound()));
+
+    stubFor(
         get(urlPathEqualTo("/lol/league/v4/entries/by-puuid/abc-def-ghi"))
             .willReturn(
                 okJson(
@@ -54,7 +71,13 @@ class ProfileDataAdapterTest {
 
     RestClient.Builder riotRestClient = RestClient.builder().baseUrl(wmInfo.getHttpBaseUrl());
     this.profileDataAdapter =
-        new ProfileDataAdapter(riotRestClient, wmInfo.getHttpBaseUrl(), wmInfo.getHttpBaseUrl());
+        new ProfileDataAdapter(
+            riotRestClient,
+            wmInfo.getHttpBaseUrl(),
+            wmInfo.getHttpBaseUrl(),
+            wmInfo.getHttpBaseUrl(),
+            "https://ddragon-mock.com/cdn",
+            "16.3.1");
   }
 
   @Test
@@ -64,8 +87,13 @@ class ProfileDataAdapterTest {
     assertThat(profile)
         .isPresent()
         .get()
-        .extracting(SummonerProfile::name, SummonerProfile::tag, SummonerProfile::gamesPlayed)
-        .containsExactly("test", "1234", 6);
+        .extracting(
+            SummonerProfile::name,
+            SummonerProfile::tag,
+            SummonerProfile::gamesPlayed,
+            SummonerProfile::profileIconURI)
+        .containsExactly(
+            "test", "1234", 6, "https://ddragon-mock.com/cdn/16.3.1/img/profileicon/6762.png");
   }
 
   @Test

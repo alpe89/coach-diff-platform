@@ -24,4 +24,4 @@ COPY --from=builder /coach-diff/target/*.jar coach-diff.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "coach-diff.jar"]
+CMD ["java", "--enable-preview", "-jar", "coach-diff.jar"]
