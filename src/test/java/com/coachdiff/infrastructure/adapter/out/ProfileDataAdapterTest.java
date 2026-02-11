@@ -120,7 +120,8 @@ class ProfileDataAdapterTest {
     var wmBaseUrl = wmInfo.getHttpBaseUrl();
 
     var riotRestClient = RestClient.builder().baseUrl(wmBaseUrl);
-    var apiProps = new RiotProperties.RiotApi("fake-key", wmBaseUrl, wmBaseUrl, wmBaseUrl);
+    var apiProps =
+        new RiotProperties.RiotApi("fake-key", wmBaseUrl, wmBaseUrl, wmBaseUrl, wmBaseUrl);
     var ddragonProps = new RiotProperties.RiotDdragon("https://ddragon-mock.com/cdn", "16.3.1");
 
     var riotProperties = new RiotProperties(apiProps, ddragonProps);
