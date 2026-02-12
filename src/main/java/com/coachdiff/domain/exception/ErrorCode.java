@@ -3,6 +3,7 @@ package com.coachdiff.domain.exception;
 public enum ErrorCode {
   INVALID_REQUEST,
   SUMMONER_NOT_FOUND,
+  MATCH_DATA_NOT_FOUND,
   RIOT_API_ERROR,
   RIOT_API_RATE_LIMIT,
   RIOT_API_TIMEOUT,

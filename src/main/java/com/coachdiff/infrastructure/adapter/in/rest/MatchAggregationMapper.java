@@ -9,6 +9,5 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MatchAggregationMapper {
   @Mapping(target = "winRate", expression = "java(matchAggregation.winRate())")
-
   MatchAggregationDto toDto(MatchAggregate matchAggregation);
 }

@@ -9,8 +9,11 @@ import org.springframework.web.client.RestClient;
 @Configuration
 @EnableConfigurationProperties(RiotProperties.class)
 public class RiotApiConfig {
-  @Value("${riot.api.key}")
-  private String riotApiKey;
+  private final String riotApiKey;
+
+  RiotApiConfig(RiotProperties riotProperties) {
+    this.riotApiKey = riotProperties.api().key();
+  }
 
   @Bean
   RestClient.Builder riotRestClient() {

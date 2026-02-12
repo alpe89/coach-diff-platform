@@ -29,3 +29,6 @@ riot:
   ddragon:
     version: ${DDRAGON_VERSION:16.3.1}
     base-url: https://ddragon.leagueoflegends.com/cdn
+  rate-limit:
+    requests-per-second: 20
+    timeout-seconds: 5
