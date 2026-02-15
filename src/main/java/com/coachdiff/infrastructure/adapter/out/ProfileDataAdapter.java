@@ -5,7 +5,6 @@ import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.domain.port.out.LoadProfileDataPort;
-import com.coachdiff.infrastructure.adapter.out.dto.RiotAccountDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotLeagueDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotSummonerDTO;
 import com.coachdiff.infrastructure.config.RiotProperties;
@@ -22,36 +21,30 @@ import org.springframework.web.client.RestClient;
 @Component
 public class ProfileDataAdapter implements LoadProfileDataPort {
   private static final Logger log = LoggerFactory.getLogger(ProfileDataAdapter.class);
-  private final RestClient riotAccountsRestClient;
   private final RestClient riotLeagueRestClient;
   private final RestClient riotSummonerRestClient;
   private final String riotDdragonBaseUrl;
   private final String riotDdragonVersion;
+  private final RiotAccountClient riotAccountClient;
 
-  public ProfileDataAdapter(RestClient.Builder restClientBuilder, RiotProperties riotProperties) {
-    this.riotAccountsRestClient =
-        restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlAccounts()).build();
+  public ProfileDataAdapter(
+      RestClient.Builder restClientBuilder,
+      RiotProperties riotProperties,
+      RiotAccountClient riotAccountClient) {
     this.riotLeagueRestClient =
         restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlLeague()).build();
     this.riotSummonerRestClient =
         restClientBuilder.clone().baseUrl(riotProperties.api().baseUrlSummoner()).build();
     this.riotDdragonBaseUrl = riotProperties.ddragon().baseUrl();
     this.riotDdragonVersion = riotProperties.ddragon().version();
+    this.riotAccountClient = riotAccountClient;
   }
 
   @Override
   public Optional<SummonerProfile> loadProfileData(String name, String tag) {
 
-    RiotAccountDTO riotAccount =
-        riotAccountsRestClient
-            .get()
-            .uri("/riot/account/v1/accounts/by-riot-id/{name}/{tag}", name, tag)
-            .retrieve()
-            .onStatus(HttpStatusCode::is4xxClientError, RiotExceptionHandler::handleRiotException)
-            .body(RiotAccountDTO.class);
-
-    return Optional.ofNullable(riotAccount)
-        .map(RiotAccountDTO::puuid)
+    return riotAccountClient
+        .getRiotAccountPuuid(name, tag)
         .flatMap(
             puuid -> {
               try (var scope = StructuredTaskScope.open()) {

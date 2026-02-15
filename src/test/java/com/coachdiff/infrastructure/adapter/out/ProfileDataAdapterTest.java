@@ -11,6 +11,8 @@ import com.coachdiff.infrastructure.adapter.out.exception.RiotUnknownException;
 import com.coachdiff.infrastructure.config.RiotProperties;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,10 +125,14 @@ class ProfileDataAdapterTest {
     var apiProps =
         new RiotProperties.RiotApi("fake-key", wmBaseUrl, wmBaseUrl, wmBaseUrl, wmBaseUrl);
     var ddragonProps = new RiotProperties.RiotDdragon("https://ddragon-mock.com/cdn", "16.3.1");
+    var rateLimitProps = new RiotProperties.RiotRateLimit(20, 5);
 
-    var riotProperties = new RiotProperties(apiProps, ddragonProps);
+    var riotProperties = new RiotProperties(apiProps, ddragonProps, rateLimitProps);
+    var rateLimiter = RateLimiter.of("test", RateLimiterConfig.custom().build());
+    var riotAccountClient = new RiotAccountClient(riotRestClient, riotProperties, rateLimiter);
 
-    this.profileDataAdapter = new ProfileDataAdapter(riotRestClient, riotProperties);
+    this.profileDataAdapter =
+        new ProfileDataAdapter(riotRestClient, riotProperties, riotAccountClient);
   }
 
   @Test

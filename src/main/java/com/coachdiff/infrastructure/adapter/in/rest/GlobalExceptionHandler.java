@@ -1,6 +1,7 @@
 package com.coachdiff.infrastructure.adapter.in.rest;
 
 import com.coachdiff.domain.exception.ErrorCode;
+import com.coachdiff.domain.exception.MatchDataNotFoundException;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.infrastructure.adapter.out.exception.RiotAuthenticationException;
 import com.coachdiff.infrastructure.adapter.out.exception.RiotException;
@@ -16,6 +17,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(SummonerProfileNotFoundException.class)
   public ResponseEntity<ApiError> summonerProfileNotFoundHandler(
       SummonerProfileNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ApiError(HttpStatus.NOT_FOUND.value(), ex.getCode(), ex.getMessage()));
+  }
+
+  @ExceptionHandler(MatchDataNotFoundException.class)
+  public ResponseEntity<ApiError> matchDataNotFoundHandler(MatchDataNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(new ApiError(HttpStatus.NOT_FOUND.value(), ex.getCode(), ex.getMessage()));
   }

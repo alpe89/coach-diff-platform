@@ -118,6 +118,30 @@ src/main/java/com/coachdiff/
 
 ---
 
+## Caching Strategy
+
+**Current: In-memory with Spring Cache + Caffeine**
+
+Match details and timelines are **immutable** — once a game is played, the data never changes. Cache at the individual level, not the aggregate.
+
+| Data | Cached? | Why |
+|------|---------|-----|
+| Match IDs list (`/by-puuid/.../ids`) | NO | This is how we detect new games |
+| Match detail by matchId | YES | Immutable, `maximumSize(20)` |
+| Timeline by matchId | YES | Immutable, `maximumSize(20)` |
+
+- Caffeine handles LRU eviction automatically — no manual cache busting needed
+- `@Cacheable` on individual fetch methods (must be public, called from outside the class — Spring proxy limitation)
+- Worst case after cache warm: 1 new game = 3 API calls (IDs + 1 match + 1 timeline) instead of 41
+
+**Future: Migrate to PostgreSQL**
+
+- Replace Caffeine with DB persistence so match data survives restarts / redeploys
+- Same interface, just swap the cache layer for a repository lookup
+- Enables historical analysis across sessions
+
+---
+
 ## Deployment
 
 - **GCP Cloud Run** for hosting (Docker-based, scales to zero)

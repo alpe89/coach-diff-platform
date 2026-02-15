@@ -11,7 +11,6 @@ public record MatchAggregationDto(
     double avgKda,
     double avgSoloKills,
     double avgDamagePerMinute,
-    double avgTotalDamageToChampions,
     double avgDamagePerGold,
     double avgTeamDamagePercentage,
     double avgDamageTakenPercentage,
@@ -19,9 +18,10 @@ public record MatchAggregationDto(
     // Economy
     double avgGoldPerMinute,
     double avgCsPerMinute,
-    double avgLaneMinionsFirst10Min,
     double avgCsAt10,
+    double avgGoldAt10,
     double avgGoldAt15,
+    double avgXpAt15,
     // Objectives
     double avgDamageToTurrets,
     double avgDamageToObjectives,

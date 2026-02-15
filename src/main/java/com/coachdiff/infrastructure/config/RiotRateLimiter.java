@@ -15,7 +15,7 @@ public class RiotRateLimiter {
   }
 
   @Bean
-  RateLimiter riotRateLimiter() {
+  RateLimiter rateLimiter() {
     return RateLimiter.of(
         "riot-api",
         RateLimiterConfig.custom()
