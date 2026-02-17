@@ -1,6 +1,16 @@
 spring:
   mvc:
     log-request-details: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coach_diff
+    username: ${DB_USERNAME:coach_diff}
+    password: ${DB_PASSWORD:coach_diff}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
 
 logging:
   level:
