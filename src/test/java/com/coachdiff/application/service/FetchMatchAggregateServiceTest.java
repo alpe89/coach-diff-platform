@@ -1,13 +1,12 @@
 package com.coachdiff.application.service;
 
+import static com.coachdiff.testutil.TestFixtures.createMatchRecord;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.coachdiff.domain.exception.MatchDataNotFoundException;
-import com.coachdiff.domain.model.MatchAggregate;
-import com.coachdiff.domain.port.out.LoadMatchAggregatePort;
+import com.coachdiff.domain.port.out.*;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,36 +16,47 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class FetchMatchAggregateServiceTest {
-  @Mock private LoadMatchAggregatePort loadMatchAggregatePort;
+  @Mock private SaveMatchRecordsPort saveMatchRecordsPort;
+  @Mock private LoadMatchRecordsPort loadMatchRecordsPort;
+  @Mock private FetchAccountPort fetchAccountPort;
+  @Mock private FetchMatchDetailsPort fetchMatchDetailsPort;
 
   private FetchMatchAggregateService service;
+  private final String name = "test";
+  private final String tag = "1234";
 
   @BeforeEach
   void setUp() {
-    service = new FetchMatchAggregateService(loadMatchAggregatePort);
+    service =
+        new FetchMatchAggregateService(
+            fetchAccountPort, fetchMatchDetailsPort, loadMatchRecordsPort, saveMatchRecordsPort);
   }
 
   @Test
   void shouldReturnMatchAggregate() {
-    var aggregate =
-        new MatchAggregate(
-            10, 6, 4, 5.0, 3.0, 7.0, 4.0, 2.0, 800.0, 1.8, 0.28, 0.20, 0.55, 400.0, 7.5, 75.0,
-            3800.0, 5200.0, 5500.0, 3000.0, 7000.0, 2.0, 1.2, 10.0, 3.0, 4.0);
-    when(loadMatchAggregatePort.loadMatchAggregate(any(), any()))
-        .thenReturn(Optional.of(aggregate));
+    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
 
-    var result = service.fetchMatchAggregation("test", "1234");
+    when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
+        .thenReturn(List.of("EUW1_1111", "EUW1_1112"));
 
-    assertThat(result.gamesAnalyzed()).isEqualTo(10);
-    assertThat(result.wins()).isEqualTo(6);
-  }
+    when(loadMatchRecordsPort.loadExistingMatchRecords(
+            "fake-puuid", List.of("EUW1_1111", "EUW1_1112")))
+        .thenReturn(List.of(createMatchRecord("EUW1_1111", "fake-puuid")));
 
-  @Test
-  void shouldThrowWhenNoMatchDataFound() {
-    when(loadMatchAggregatePort.loadMatchAggregate(any(), any())).thenReturn(Optional.empty());
+    when(fetchMatchDetailsPort.getMatchRecords("fake-puuid", List.of("EUW1_1112")))
+        .thenReturn(List.of(createMatchRecord("EUW1_1112", "fake-puuid")));
 
-    assertThatThrownBy(() -> service.fetchMatchAggregation("test", "1234"))
-        .isInstanceOf(MatchDataNotFoundException.class)
-        .hasMessageContaining("test#1234");
+    var result = service.fetchMatchAggregation(name, tag);
+
+    verify(fetchAccountPort).getPuuid(name, tag);
+    verify(fetchMatchDetailsPort).getMatchIdsByPuuid("fake-puuid");
+    verify(loadMatchRecordsPort)
+        .loadExistingMatchRecords("fake-puuid", List.of("EUW1_1111", "EUW1_1112"));
+    verify(fetchMatchDetailsPort).getMatchRecords("fake-puuid", List.of("EUW1_1112"));
+    verify(saveMatchRecordsPort)
+        .saveMatchRecords(List.of(createMatchRecord("EUW1_1112", "fake-puuid")));
+
+    assertThat(result.gamesAnalyzed()).isEqualTo(2);
+    assertThat(result.wins()).isEqualTo(2);
   }
 }

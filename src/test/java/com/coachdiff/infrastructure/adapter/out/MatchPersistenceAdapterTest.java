@@ -1,5 +1,6 @@
 package com.coachdiff.infrastructure.adapter.out;
 
+import static com.coachdiff.testutil.TestFixtures.createMatchRecord;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,42 +79,6 @@ public class MatchPersistenceAdapterTest {
     assertThat(matchRecords.get(0).puuid()).isEqualTo("random-puuid");
     assertThat(matchRecords.get(1).matchId()).isEqualTo("match-2");
     assertThat(matchRecords.get(1).puuid()).isEqualTo("random-puuid");
-  }
-
-  private MatchRecord createMatchRecord(String matchId, String puuid) {
-    return new MatchRecord(
-        matchId,
-        puuid,
-        true,
-        32.5,
-        // Combat
-        8,
-        3,
-        12,
-        4.5,
-        2,
-        850.0,
-        1.2,
-        0.28,
-        0.18,
-        0.65,
-        // Economy
-        420.0,
-        7.8,
-        // Objectives
-        4500,
-        12000,
-        3,
-        // Vision
-        1.5,
-        15,
-        8,
-        4,
-        // Timeline
-        78.0,
-        3200.0,
-        5800.0,
-        6100.0);
   }
 
   private MatchRecordEntity createMatchRecordEntity(String matchId, String puuid) {
