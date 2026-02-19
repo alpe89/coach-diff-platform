@@ -8,12 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.Division;
+import com.coachdiff.domain.model.Profile;
 import com.coachdiff.domain.model.Region;
-import com.coachdiff.domain.model.SummonerProfile;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.domain.port.in.FetchProfilePort;
-import java.math.BigDecimal;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +33,9 @@ public class ProfileControllerTest {
 
   @BeforeEach
   void setUp() {
-    when(fetchProfilePort.getSummonerProfile("TestName", "TestTag"))
+    when(fetchProfilePort.getProfile("TestName", "TestTag"))
         .thenReturn(
-            new SummonerProfile(
+            new Profile(
                 "Summoner",
                 "#1234",
                 Region.EUW1,
@@ -46,11 +44,13 @@ public class ProfileControllerTest {
                 Division.III,
                 20,
                 5,
-                8));
+                8,
+                13,
+                0.38));
   }
 
   @Test
-  public void shouldReturnSummonerProfile() throws Exception {
+  public void shouldReturnProfile() throws Exception {
     mockMvc
         .perform(get("/api/profile"))
         .andExpect(status().isOk())
@@ -62,15 +62,13 @@ public class ProfileControllerTest {
         .andExpect(jsonPath("$.lp").value(20))
         .andExpect(jsonPath("$.wins").value(5))
         .andExpect(jsonPath("$.losses").value(8))
-        .andExpect(
-            jsonPath("$.winRate")
-                .value(Matchers.closeTo(new BigDecimal("0.38"), new BigDecimal("0.01"))))
+        .andExpect(jsonPath("$.winRate").value(0.38))
         .andExpect(jsonPath("$.gamesPlayed").value(13));
   }
 
   @Test
   public void shouldReturnNotFound() throws Exception {
-    when(fetchProfilePort.getSummonerProfile(any(), any()))
+    when(fetchProfilePort.getProfile(any(), any()))
         .thenThrow(
             new SummonerProfileNotFoundException(
                 ErrorCode.SUMMONER_NOT_FOUND, "Profile not found"));

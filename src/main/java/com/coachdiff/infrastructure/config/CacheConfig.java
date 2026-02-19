@@ -16,11 +16,7 @@ public class CacheConfig {
   @Bean
   CacheManager cacheManager() {
     var cacheManager = new SimpleCacheManager();
-    cacheManager.setCaches(
-        List.of(
-            buildCache("account-details", 1),
-            buildCache("match-details", 20),
-            buildCache("match-timelines", 20)));
+    cacheManager.setCaches(List.of(buildCache("account-details", 1)));
     return cacheManager;
   }
 

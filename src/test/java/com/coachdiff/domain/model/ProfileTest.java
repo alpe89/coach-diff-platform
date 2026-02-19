@@ -10,13 +10,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class SummonerProfileTest {
-  private SummonerProfile summoner;
+class ProfileTest {
+  private Profile summoner;
 
   @BeforeEach
   void setUp() {
     this.summoner =
-        new SummonerProfile(
+        new Profile(
             "Random",
             "#1234",
             Region.EUW1,
@@ -25,7 +25,9 @@ class SummonerProfileTest {
             Division.III,
             0,
             12,
-            4);
+            4,
+            16,
+            0.75);
   }
 
   @Test
@@ -40,35 +42,23 @@ class SummonerProfileTest {
 
   @Test
   void shouldReturnZeroWinRateForZeroGamesPlayed() {
-    summoner =
-        new SummonerProfile(
-            "Random",
-            "#1234",
-            Region.EUW1,
-            "https://ddragon.url",
-            Tier.IRON,
-            Division.III,
-            0,
-            0,
-            0);
-    assertThat(this.summoner.winRate()).isEqualTo(0.0);
+    var summonerRecord = new SummonerRecord("https://ddragon.url");
+    var rankRecord = new RankRecord(Tier.IRON, Division.III, 0, 0, 0);
+
+    var profile = Profile.composeProfile("Random", "#1234", summonerRecord, rankRecord);
+
+    assertThat(profile.winRate()).isEqualTo(0.0);
   }
 
   @ParameterizedTest
   @MethodSource("winRateFactory")
   void shouldReturnWinRate(int wins, int losses, double expectedWinRate) {
-    summoner =
-        new SummonerProfile(
-            "Random",
-            "#1234",
-            Region.EUW1,
-            "https://ddragon.url",
-            Tier.IRON,
-            Division.III,
-            0,
-            wins,
-            losses);
-    assertThat(this.summoner.winRate()).isCloseTo(expectedWinRate, Offset.offset(0.001));
+    var summonerRecord = new SummonerRecord("https://ddragon.url");
+    var rankRecord = new RankRecord(Tier.IRON, Division.III, 0, wins, losses);
+
+    var profile = Profile.composeProfile("Random", "#1234", summonerRecord, rankRecord);
+
+    assertThat(profile.winRate()).isCloseTo(expectedWinRate, Offset.offset(0.001));
   }
 
   static Stream<Arguments> winRateFactory() {

@@ -5,7 +5,6 @@ import com.coachdiff.infrastructure.adapter.out.dto.RiotTimelineDTO;
 import com.coachdiff.infrastructure.config.RiotProperties;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import java.util.List;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -37,7 +36,6 @@ public class RiotMatchClient {
                 .body(new ParameterizedTypeReference<>() {}));
   }
 
-  @Cacheable("match-details")
   public RiotMatchDTO getMatchData(String matchId) {
     return rateLimiter.executeSupplier(
         () ->
@@ -50,7 +48,6 @@ public class RiotMatchClient {
                 .body(RiotMatchDTO.class));
   }
 
-  @Cacheable("match-timelines")
   public RiotTimelineDTO getMatchTimelineData(String matchId) {
     return rateLimiter.executeSupplier(
         () ->
