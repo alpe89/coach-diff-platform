@@ -4,6 +4,7 @@ import static com.coachdiff.testutil.TestFixtures.createMatchRecord;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
 import java.util.Optional;
@@ -23,12 +24,17 @@ class FetchMatchAggregateServiceTest {
   private FetchMatchAggregateService service;
   private final String name = "test";
   private final String tag = "1234";
+  private final String coachingRole = "ADC";
 
   @BeforeEach
   void setUp() {
     service =
         new FetchMatchAggregateService(
-            fetchAccountPort, fetchMatchDetailsPort, loadMatchRecordsPort, saveMatchRecordsPort);
+            fetchAccountPort,
+            fetchMatchDetailsPort,
+            loadMatchRecordsPort,
+            saveMatchRecordsPort,
+            coachingRole);
   }
 
   @Test
@@ -78,6 +84,31 @@ class FetchMatchAggregateServiceTest {
     verify(saveMatchRecordsPort)
         .saveMatchRecords(List.of(createMatchRecord("EUW1_2001", "fake-puuid", 25.0)));
     assertThat(result.gamesAnalyzed()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldFilterOutMatchesNotMatchingCoachingRole() {
+    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
+        .thenReturn(List.of("EUW1_4001", "EUW1_4002", "EUW1_4003"));
+    when(loadMatchRecordsPort.loadExistingMatchRecords(
+            "fake-puuid", List.of("EUW1_4001", "EUW1_4002", "EUW1_4003")))
+        .thenReturn(List.of());
+    when(fetchMatchDetailsPort.getMatchRecords(
+            "fake-puuid", List.of("EUW1_4001", "EUW1_4002", "EUW1_4003")))
+        .thenReturn(
+            List.of(
+                createMatchRecord("EUW1_4001", "fake-puuid", 30.0, "Jinx", Role.ADC),
+                createMatchRecord("EUW1_4002", "fake-puuid", 25.0, "Lux", Role.SUPPORT),
+                createMatchRecord("EUW1_4003", "fake-puuid", 28.0, "Caitlyn", Role.ADC)));
+
+    var result = service.fetchMatchAggregation(name, tag);
+
+    // All 3 matches saved to DB (regardless of role)
+    verify(saveMatchRecordsPort).saveMatchRecords(argThat(list -> list.size() == 3));
+    // Only ADC matches aggregated
+    assertThat(result.gamesAnalyzed()).isEqualTo(2);
+    assertThat(result.wins()).isEqualTo(2);
   }
 
   @Test

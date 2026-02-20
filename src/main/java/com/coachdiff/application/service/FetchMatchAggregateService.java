@@ -4,6 +4,7 @@ import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.MatchAggregate;
 import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.in.FetchMatchAggregatePort;
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,16 +22,19 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
   private final FetchMatchDetailsPort fetchMatchDetailsPort;
   private final LoadMatchRecordsPort loadMatchRecordsPort;
   private final SaveMatchRecordsPort saveMatchRecordsPort;
+  private final Role coachingRole;
 
   FetchMatchAggregateService(
       FetchAccountPort fetchAccountPort,
       FetchMatchDetailsPort fetchMatchDetailsPort,
       LoadMatchRecordsPort loadMatchRecordsPort,
-      SaveMatchRecordsPort saveMatchRecordsPort) {
+      SaveMatchRecordsPort saveMatchRecordsPort,
+      @Value("${coach-diff.coaching-role}") String coachingRole) {
     this.fetchAccountPort = fetchAccountPort;
     this.fetchMatchDetailsPort = fetchMatchDetailsPort;
     this.loadMatchRecordsPort = loadMatchRecordsPort;
     this.saveMatchRecordsPort = saveMatchRecordsPort;
+    this.coachingRole = Role.valueOf(coachingRole);
   }
 
   @Override
@@ -64,7 +69,9 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
     }
 
     return MatchAggregate.fromMatchRecordList(
-        Stream.concat(matchRecords.stream(), fetchedMatches.stream()).toList());
+        Stream.concat(matchRecords.stream(), fetchedMatches.stream())
+            .filter(match -> match.role() == coachingRole)
+            .toList());
   }
 
   private List<String> excludeKnownMatchesIds(
