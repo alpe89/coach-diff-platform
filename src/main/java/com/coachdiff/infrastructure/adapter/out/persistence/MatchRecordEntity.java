@@ -1,6 +1,7 @@
 package com.coachdiff.infrastructure.adapter.out.persistence;
 
 import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -20,6 +21,8 @@ public class MatchRecordEntity {
   // Game info
   private boolean win;
   private double gameDurationMinutes;
+  private String championName;
+  private String role;
 
   // Combat
   private int kills;
@@ -61,6 +64,8 @@ public class MatchRecordEntity {
       String puuid,
       boolean win,
       double gameDurationMinutes,
+      String championName,
+      String role,
       int kills,
       int deaths,
       int assists,
@@ -88,6 +93,8 @@ public class MatchRecordEntity {
     this.puuid = puuid;
     this.win = win;
     this.gameDurationMinutes = gameDurationMinutes;
+    this.championName = championName;
+    this.role = role;
     this.kills = kills;
     this.deaths = deaths;
     this.assists = assists;
@@ -133,6 +140,14 @@ public class MatchRecordEntity {
     return goldAt10 != null ? goldAt10.intValue() : 0;
   }
 
+  public String getChampionName() {
+    return championName;
+  }
+
+  public Role getRole() {
+    return Role.valueOf(role);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -151,6 +166,8 @@ public class MatchRecordEntity {
         record.puuid(),
         record.win(),
         record.gameDurationMinutes(),
+        record.championName(),
+        record.role().name(),
         record.kills(),
         record.deaths(),
         record.assists(),
@@ -182,6 +199,8 @@ public class MatchRecordEntity {
         entity.puuid,
         entity.win,
         entity.gameDurationMinutes,
+        entity.championName,
+        Role.valueOf(entity.role),
         entity.kills,
         entity.deaths,
         entity.assists,

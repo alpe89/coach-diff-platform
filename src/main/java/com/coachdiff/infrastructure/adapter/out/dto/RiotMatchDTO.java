@@ -13,6 +13,8 @@ public record RiotMatchDTO(Info info) {
   public record Participant(
       String puuid,
       boolean win,
+      String championName,
+      String teamPosition,
       // Combat
       int kills,
       int deaths,

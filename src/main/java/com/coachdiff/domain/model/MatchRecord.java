@@ -5,6 +5,8 @@ public record MatchRecord(
     String puuid,
     boolean win,
     double gameDurationMinutes,
+    String championName,
+    Role role,
     int kills,
     int deaths,
     int assists,

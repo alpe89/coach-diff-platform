@@ -3,6 +3,7 @@ package com.coachdiff.infrastructure.adapter.out.persistence;
 import static com.coachdiff.testutil.TestFixtures.createMatchRecordEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.coachdiff.domain.model.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -36,6 +37,8 @@ class MatchRecordRepositoryTest {
     var foundRecord = repository.findById(record.getId());
     assertThat(foundRecord).isPresent();
     assertThat(foundRecord.get()).isEqualTo(record);
+    assertThat(foundRecord.get().getRole()).isEqualTo(Role.ADC);
+    assertThat(foundRecord.get().getChampionName()).isEqualTo("Jinx");
     assertThat(foundRecord.get().getGoldAt10()).isEqualTo(3200);
     assertThat(foundRecord.get().getDamagePerMinute()).isEqualTo(850);
     assertThat(foundRecord.get().getKda()).isEqualTo(4.5);

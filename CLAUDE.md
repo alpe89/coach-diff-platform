@@ -175,15 +175,28 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 
 ## Roadmap
 
+### Done
 1. ✅ Profile endpoint (Account-V1 + League-V4 + Summoner-V4)
 2. ✅ Match aggregation endpoint (Match-V5 + timeline)
 3. ✅ PostgreSQL persistence (Neon prod, Docker Compose local, Testcontainers tests)
 4. ✅ Structured logging (ECS format for GCP)
 5. ✅ Season scoping (SEASON_START_EPOCH)
-6. ⬜ Add role + champion tracking to match records
-7. ⬜ Role-specific aggregation
-8. ⬜ Remove @Cacheable from match/timeline (DB replaces cache)
-9. ⬜ LLM analysis layer
+6. ✅ Remake filtering (games < 10 min excluded)
+
+### Next — Data enrichment
+7. ⬜ Add `role` + `championName` to MatchRecord (Flyway migration + domain + entity + adapter)
+8. ⬜ Champion breakdown in aggregation (per-champion stats alongside overall aggregate)
+9. ⬜ Role-based filtering at aggregation level (only aggregate games matching user's coaching role)
+
+### Next — Account & benchmarks
+10. ⬜ Account domain (name, tag, coaching role) — replaces hardcoded env vars
+11. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
+
+### Cleanup & infra
+12. ⬜ Remove @Cacheable from match/timeline, clean up CacheConfig (DB replaces cache)
+
+### Future
+13. ⬜ LLM analysis layer (uses overall aggregate, champion breakdown, individual match context, and rank benchmarks)
 
 ---
 

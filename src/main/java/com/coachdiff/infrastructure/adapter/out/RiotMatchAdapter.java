@@ -1,6 +1,7 @@
 package com.coachdiff.infrastructure.adapter.out;
 
 import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.FetchMatchDetailsPort;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotMatchDTO;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotTimelineDTO;
@@ -122,6 +123,8 @@ public class RiotMatchAdapter implements FetchMatchDetailsPort {
         puuid,
         p.win(),
         gameDurationMinutes,
+        p.championName(),
+        Role.fromRiotRole(p.teamPosition()),
         p.kills(),
         p.deaths(),
         p.assists(),
