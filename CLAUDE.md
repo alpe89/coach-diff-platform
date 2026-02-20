@@ -2,9 +2,9 @@
 
 ## Overview
 
-AI-powered League of Legends coach API. Fetches your summoner profile and ranked data from Riot API.
+AI-powered League of Legends coach API. Fetches summoner profile, ranked data, and match performance aggregations from Riot API, with PostgreSQL persistence.
 
-**Tech Stack:** Java 25, Spring Boot 4.0.1, Maven, Hexagonal Architecture
+**Tech Stack:** Java 25, Spring Boot 4.0.1, Maven, Hexagonal Architecture, PostgreSQL (Neon)
 
 ---
 
@@ -42,12 +42,14 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 
 ---
 
-## MVP Scope (DO NOT CROSS THIS LINE 🚫)
+## Current Scope
 
-- Retrieve the **user's own profile** only
+- Retrieve the **user's own profile** and **match aggregation stats**
 - Summoner name/tag are **hardcoded** (env variables), NOT query parameters
-- NO rank comparison features
-- NO AI/OpenAI suggestions
+- Match data is **persisted** in PostgreSQL (Neon in prod, Docker Compose locally)
+- Matches scoped to **current season** via `SEASON_START_EPOCH`
+- NO rank comparison features (yet)
+- NO AI/LLM analysis (yet)
 - NO multi-user support
 - The learning IS the product, not the app
 
@@ -59,19 +61,24 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 src/main/java/com/coachdiff/
 ├── Application.java
 ├── domain/
-│   ├── exception/       # ErrorCode, SummonerProfileNotFoundException
-│   ├── model/           # SummonerProfile, Tier, Division, Region
+│   ├── exception/       # DomainNotFoundException hierarchy, ErrorCode
+│   ├── model/           # Profile, MatchRecord, MatchAggregate, RankRecord, SummonerRecord, Tier, Division, Region
 │   └── port/
-│       ├── in/          # FetchProfilePort (inbound use case)
-│       └── out/         # LoadProfileDataPort (outbound contract)
+│       ├── in/          # FetchProfilePort, FetchMatchAggregatePort
+│       └── out/         # FetchAccountPort, FetchLeagueDataPort, FetchSummonerDataPort, FetchMatchDetailsPort, LoadMatchRecordsPort, SaveMatchRecordsPort
 ├── application/
-│   └── service/         # FetchProfileService
+│   └── service/         # FetchProfileService, FetchMatchAggregateService
 └── infrastructure/
     ├── adapter/
-    │   ├── in/rest/     # ProfileController, GlobalExceptionHandler, ApiError
-    │   └── out/         # ProfileDataAdapter
-    │       └── dto/     # RiotAccountDTO, RiotLeagueDTO
-    └── config/          # RiotApiConfig
+    │   ├── in/rest/     # ProfileController, MatchAggregationController, GlobalExceptionHandler, ApiError
+    │   └── out/
+    │       ├── dto/     # RiotAccountDTO, RiotLeagueDTO, RiotMatchDTO, RiotTimelineDTO, RiotSummonerDTO
+    │       ├── exception/ # RiotRateLimitException
+    │       ├── persistence/ # MatchPersistenceAdapter, MatchRecordEntity, MatchRecordRepository
+    │       ├── Riot*Client.java  # RiotAccountClient, RiotMatchClient, RiotLeagueClient, RiotSummonerClient
+    │       ├── Riot*Adapter.java # RiotAccountAdapter, RiotMatchAdapter, RiotLeagueDataAdapter, RiotSummonerDataAdapter
+    │       └── RiotExceptionHandler.java
+    └── config/          # RiotApiConfig, RiotProperties, RiotRateLimiter, CacheConfig
 ```
 
 **Dependency direction:** `Infrastructure → Application → Domain`
@@ -83,6 +90,7 @@ src/main/java/com/coachdiff/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/profile` | Summoner profile with rank data |
+| GET | `/api/matches` | Match aggregation stats (last 20 ranked games, current season) |
 
 ---
 
@@ -90,7 +98,9 @@ src/main/java/com/coachdiff/
 
 **Riot API:**
 - **Account-V1** — resolve summoner name/tag → PUUID
-- **League-V4** — fetch ranked data by PUUID
+- **Summoner-V4** — summoner data (profile icon)
+- **League-V4** — ranked data (tier, division, LP, wins/losses)
+- **Match-V5** — match list, match details, and timeline data
 
 ---
 
@@ -98,6 +108,7 @@ src/main/java/com/coachdiff/
 
 - **Service** suffix for application services (not UseCase)
 - **Adapter** suffix for infrastructure adapters
+- **Client** suffix for external API HTTP clients
 - **Port** suffix for ports (inbound and outbound)
 - **Dto** suffix for data transfer objects
 - Java `record` for immutable data (DTOs, domain models)
@@ -109,36 +120,43 @@ src/main/java/com/coachdiff/
 - `@WebMvcTest` + MockMvc for controller tests
 - Unit tests with Mockito for application services
 - WireMock for external API mocking in adapter tests
+- `@DataJpaTest` + Testcontainers for repository tests
 - AssertJ for fluent assertions
+- TDD (Red → Green → Refactor) for all new features
 
 ### Code Quality
 
 - **Spotless** (google-java-format) — runs on `validate` phase
 - **Checkstyle** (google_checks.xml) — runs on `validate` phase
+- **JaCoCo** — code coverage (90%+ target)
+
+---
+
+## Persistence
+
+**PostgreSQL** with Spring Data JPA + Flyway migrations.
+
+- **Production:** Neon (serverless Postgres)
+- **Local dev:** Docker Compose (`postgres:17-alpine`)
+- **Tests:** Testcontainers (auto-provisioned)
+
+Match records are persisted with composite key (matchId + puuid). Service orchestrates: check DB → fetch missing from Riot → save new → compute aggregate.
 
 ---
 
 ## Caching Strategy
 
-**Current: In-memory with Spring Cache + Caffeine**
+**Current: Caffeine in-memory cache** (to be cleaned up — DB persistence makes this redundant for match data)
 
-Match details and timelines are **immutable** — once a game is played, the data never changes. Cache at the individual level, not the aggregate.
+- Account details cached via `@Cacheable` (avoid repeated PUUID lookups)
+- Match IDs list is NOT cached (how we detect new games)
 
-| Data | Cached? | Why |
-|------|---------|-----|
-| Match IDs list (`/by-puuid/.../ids`) | NO | This is how we detect new games |
-| Match detail by matchId | YES | Immutable, `maximumSize(20)` |
-| Timeline by matchId | YES | Immutable, `maximumSize(20)` |
+---
 
-- Caffeine handles LRU eviction automatically — no manual cache busting needed
-- `@Cacheable` on individual fetch methods (must be public, called from outside the class — Spring proxy limitation)
-- Worst case after cache warm: 1 new game = 3 API calls (IDs + 1 match + 1 timeline) instead of 41
+## Resilience
 
-**Future: Migrate to PostgreSQL**
-
-- Replace Caffeine with DB persistence so match data survives restarts / redeploys
-- Same interface, just swap the cache layer for a repository lookup
-- Enables historical analysis across sessions
+- **Resilience4j RateLimiter** wraps all Riot API calls (20 req/s limit)
+- **StructuredTaskScope** (Java 25 preview) for parallel API calls
 
 ---
 
@@ -146,9 +164,26 @@ Match details and timelines are **immutable** — once a game is played, the dat
 
 - **GCP Cloud Run** for hosting (Docker-based, scales to zero)
 - **GCP Artifact Registry** for Docker images
-- **GitHub Actions** for CI/CD (mvn verify + build/push image)
-- **Terraform** for infrastructure-as-code (after manual gcloud setup)
+- **Neon** for PostgreSQL (serverless, free tier)
+- **GCP Secret Manager** for secrets (RIOT_API_KEY, DB credentials)
+- **GitHub Actions** for CI/CD:
+  - `ci.yml`: `mvn verify` on push to main
+  - `deploy.yml`: verify + docker build/push + Cloud Run deploy on tag push (v*)
 - Multi-stage Dockerfile: Maven + JDK build → slim JRE runtime
+
+---
+
+## Roadmap
+
+1. ✅ Profile endpoint (Account-V1 + League-V4 + Summoner-V4)
+2. ✅ Match aggregation endpoint (Match-V5 + timeline)
+3. ✅ PostgreSQL persistence (Neon prod, Docker Compose local, Testcontainers tests)
+4. ✅ Structured logging (ECS format for GCP)
+5. ✅ Season scoping (SEASON_START_EPOCH)
+6. ⬜ Add role + champion tracking to match records
+7. ⬜ Role-specific aggregation
+8. ⬜ Remove @Cacheable from match/timeline (DB replaces cache)
+9. ⬜ LLM analysis layer
 
 ---
 
