@@ -4,6 +4,8 @@ import com.coachdiff.infrastructure.adapter.out.dto.RiotAccountDTO;
 import com.coachdiff.infrastructure.config.RiotProperties;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class RiotAccountClient {
+  private static final Logger log = LoggerFactory.getLogger(RiotAccountClient.class);
   private final RestClient riotAccountsRestClient;
   private final RateLimiter rateLimiter;
 
@@ -25,6 +28,7 @@ public class RiotAccountClient {
 
   @Cacheable("account-details")
   public Optional<String> getRiotAccountPuuid(String name, String tag) {
+    log.debug("Fetching PUUID for {}#{}", name, tag);
     var riotAccount =
         rateLimiter.executeSupplier(
             () ->

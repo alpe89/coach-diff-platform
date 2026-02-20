@@ -29,13 +29,15 @@ class RiotMatchClientTest {
     var riotProperties = new RiotProperties(apiProps, ddragonProps, rateLimitProps);
     var rateLimiter = RateLimiter.of("test", RateLimiterConfig.custom().build());
 
-    this.riotMatchClient = new RiotMatchClient(restClientBuilder, riotProperties, rateLimiter);
+    this.riotMatchClient =
+        new RiotMatchClient(restClientBuilder, riotProperties, rateLimiter, 1736294400L);
   }
 
   @Test
   void shouldGetMatchIds() {
     stubFor(
         get(urlPathEqualTo("/lol/match/v5/matches/by-puuid/test-puuid/ids"))
+            .withQueryParam("startTime", equalTo("1736294400"))
             .willReturn(
                 okJson(
                     """

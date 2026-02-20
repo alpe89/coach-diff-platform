@@ -9,10 +9,13 @@ import com.coachdiff.domain.port.out.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FetchMatchAggregateService implements FetchMatchAggregatePort {
+  private static final Logger log = LoggerFactory.getLogger(FetchMatchAggregateService.class);
   private final FetchAccountPort fetchAccountPort;
   private final FetchMatchDetailsPort fetchMatchDetailsPort;
   private final LoadMatchRecordsPort loadMatchRecordsPort;
@@ -42,8 +45,19 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
     var matchIds = fetchMatchDetailsPort.getMatchIdsByPuuid(puuid);
     var matchRecords = loadMatchRecordsPort.loadExistingMatchRecords(puuid, matchIds);
     var matchIdsToFetch = excludeKnownMatchesIds(matchIds, matchRecords);
+    log.info(
+        "Match aggregation for {}#{}: {} total, {} from DB, {} to fetch from Riot",
+        name,
+        tag,
+        matchIds.size(),
+        matchRecords.size(),
+        matchIdsToFetch.size());
+
     var fetchedMatches = fetchMatchDetailsPort.getMatchRecords(puuid, matchIdsToFetch);
-    saveMatchRecordsPort.saveMatchRecords(fetchedMatches);
+    if (!fetchedMatches.isEmpty()) {
+      saveMatchRecordsPort.saveMatchRecords(fetchedMatches);
+      log.info("Saved {} new match records to DB", fetchedMatches.size());
+    }
 
     return MatchAggregate.fromMatchRecordList(
         Stream.concat(matchRecords.stream(), fetchedMatches.stream()).toList());

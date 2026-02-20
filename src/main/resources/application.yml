@@ -2,9 +2,9 @@ spring:
   mvc:
     log-request-details: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/coach_diff
-    username: ${DB_USERNAME:coach_diff}
-    password: ${DB_PASSWORD:coach_diff}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/coach_diff}
+    username: ${SPRING_DATASOURCE_USERNAME:coach_diff}
+    password: ${SPRING_DATASOURCE_PASSWORD:coach_diff}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -13,21 +13,22 @@ spring:
     enabled: true
 
 logging:
+  structured:
+    format:
+      console: ecs
   level:
     sun:
       rmi:
         transport:
           tcp: ERROR
-    org:
-      springframework:
-        web:
-          servlet:
-            DispatcherServlet: DEBUG
+    com:
+      coachdiff: DEBUG
 
 coach-diff:
   default-summoner:
     name: ${DEFAULT_SUMMONER_NAME}
     tag: ${DEFAULT_SUMMONER_TAG}
+  season-start-epoch: ${SEASON_START_EPOCH:1736294400}
 
 riot:
   api:
