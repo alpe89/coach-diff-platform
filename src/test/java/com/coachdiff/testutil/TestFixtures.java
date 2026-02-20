@@ -1,6 +1,7 @@
 package com.coachdiff.testutil;
 
 import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Role;
 import com.coachdiff.infrastructure.adapter.out.persistence.MatchRecordEntity;
 
 public final class TestFixtures {
@@ -8,11 +9,23 @@ public final class TestFixtures {
   private TestFixtures() {}
 
   public static MatchRecord createMatchRecord(String matchId, String puuid) {
+    return createMatchRecord(matchId, puuid, 32.5, "Jinx", Role.ADC);
+  }
+
+  public static MatchRecord createMatchRecord(
+      String matchId, String puuid, double gameDurationMinutes) {
+    return createMatchRecord(matchId, puuid, gameDurationMinutes, "Jinx", Role.ADC);
+  }
+
+  public static MatchRecord createMatchRecord(
+      String matchId, String puuid, double gameDurationMinutes, String championName, Role role) {
     return new MatchRecord(
         matchId,
         puuid,
         true,
-        32.5,
+        gameDurationMinutes,
+        championName,
+        role,
         // Combat
         8,
         3,
@@ -44,12 +57,19 @@ public final class TestFixtures {
   }
 
   public static MatchRecordEntity createMatchRecordEntity(String matchId, String puuid) {
+    return createMatchRecordEntity(matchId, puuid, "Jinx", Role.ADC);
+  }
+
+  public static MatchRecordEntity createMatchRecordEntity(
+      String matchId, String puuid, String championName, Role role) {
     return new MatchRecordEntity(
         matchId,
         puuid,
         true,
         32.5,
         // Combat
+        championName,
+        role.name(),
         8,
         3,
         12,

@@ -53,7 +53,11 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
         matchRecords.size(),
         matchIdsToFetch.size());
 
-    var fetchedMatches = fetchMatchDetailsPort.getMatchRecords(puuid, matchIdsToFetch);
+    var fetchedMatches =
+        fetchMatchDetailsPort.getMatchRecords(puuid, matchIdsToFetch).stream()
+            .filter(match -> match.gameDurationMinutes() >= 10.0)
+            .toList();
+
     if (!fetchedMatches.isEmpty()) {
       saveMatchRecordsPort.saveMatchRecords(fetchedMatches);
       log.info("Saved {} new match records to DB", fetchedMatches.size());

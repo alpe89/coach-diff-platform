@@ -2,8 +2,7 @@ package com.coachdiff.application.service;
 
 import static com.coachdiff.testutil.TestFixtures.createMatchRecord;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
@@ -58,5 +57,41 @@ class FetchMatchAggregateServiceTest {
 
     assertThat(result.gamesAnalyzed()).isEqualTo(2);
     assertThat(result.wins()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldFilterOutRemakes() {
+    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
+        .thenReturn(List.of("EUW1_2001", "EUW1_2002"));
+    when(loadMatchRecordsPort.loadExistingMatchRecords(
+            "fake-puuid", List.of("EUW1_2001", "EUW1_2002")))
+        .thenReturn(List.of());
+    when(fetchMatchDetailsPort.getMatchRecords("fake-puuid", List.of("EUW1_2001", "EUW1_2002")))
+        .thenReturn(
+            List.of(
+                createMatchRecord("EUW1_2001", "fake-puuid", 25.0),
+                createMatchRecord("EUW1_2002", "fake-puuid", 3.0)));
+
+    var result = service.fetchMatchAggregation(name, tag);
+
+    verify(saveMatchRecordsPort)
+        .saveMatchRecords(List.of(createMatchRecord("EUW1_2001", "fake-puuid", 25.0)));
+    assertThat(result.gamesAnalyzed()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldNotSaveWhenAllMatchesAreRemakes() {
+    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid")).thenReturn(List.of("EUW1_3001"));
+    when(loadMatchRecordsPort.loadExistingMatchRecords("fake-puuid", List.of("EUW1_3001")))
+        .thenReturn(List.of());
+    when(fetchMatchDetailsPort.getMatchRecords("fake-puuid", List.of("EUW1_3001")))
+        .thenReturn(List.of(createMatchRecord("EUW1_3001", "fake-puuid", 2.5)));
+
+    var result = service.fetchMatchAggregation(name, tag);
+
+    verifyNoInteractions(saveMatchRecordsPort);
+    assertThat(result.gamesAnalyzed()).isZero();
   }
 }
