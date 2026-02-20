@@ -8,6 +8,7 @@ import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.exception.MatchDataNotFoundException;
 import com.coachdiff.domain.model.MatchAggregate;
 import com.coachdiff.domain.port.in.FetchMatchAggregatePort;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -33,7 +34,7 @@ class MatchAggregationControllerTest {
     var aggregate =
         new MatchAggregate(
             20, 12, 8, 6.5, 3.2, 8.1, 4.5, 1.8, 820.0, 1.9, 0.28, 0.20, 0.58, 410.0, 7.8, 78.0,
-            3900.0, 5400.0, 5800.0, 2800.0, 6500.0, 2.3, 1.3, 11.0, 3.5, 4.2);
+            3900.0, 5400.0, 5800.0, 2800.0, 6500.0, 2.3, 1.3, 11.0, 3.5, 4.2, List.of());
 
     when(fetchMatchAggregatePort.fetchMatchAggregation("TestName", "TestTag"))
         .thenReturn(aggregate);
@@ -41,7 +42,7 @@ class MatchAggregationControllerTest {
     var dto =
         new com.coachdiff.infrastructure.adapter.in.rest.dto.MatchAggregationDto(
             20, 12, 8, 6.5, 3.2, 8.1, 4.5, 1.8, 820.0, 1.9, 0.28, 0.20, 0.58, 410.0, 7.8, 78.0,
-            3900.0, 5400.0, 5800.0, 2800.0, 6500.0, 2.3, 1.3, 11.0, 3.5, 4.2, 0.6);
+            3900.0, 5400.0, 5800.0, 2800.0, 6500.0, 2.3, 1.3, 11.0, 3.5, 4.2, 0.6, List.of());
 
     when(matchAggregationMapper.toDto(aggregate)).thenReturn(dto);
 

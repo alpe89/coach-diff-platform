@@ -32,7 +32,8 @@ public record MatchAggregate(
     double avgVisionScorePerMinute,
     double avgWardsPlaced,
     double avgWardsKilled,
-    double avgControlWardsPlaced) {
+    double avgControlWardsPlaced,
+    List<ChampionAggregate> championsAggregate) {
 
   public double winRate() {
     if (gamesAnalyzed == 0) return 0.0;
@@ -43,10 +44,12 @@ public record MatchAggregate(
     int total = matchRecords.size();
     if (total == 0) {
       return new MatchAggregate(
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, List.of());
     }
 
     int wins = (int) matchRecords.stream().filter(MatchRecord::win).count();
+    List<ChampionAggregate> championsAggregate =
+        ChampionAggregate.fromMatchRecordList(matchRecords);
 
     return new MatchAggregate(
         total,
@@ -90,6 +93,7 @@ public record MatchAggregate(
         matchRecords.stream().mapToDouble(MatchRecord::visionScorePerMinute).average().orElse(0),
         matchRecords.stream().mapToDouble(MatchRecord::wardsPlaced).average().orElse(0),
         matchRecords.stream().mapToDouble(MatchRecord::wardsKilled).average().orElse(0),
-        matchRecords.stream().mapToDouble(MatchRecord::controlWardsPlaced).average().orElse(0));
+        matchRecords.stream().mapToDouble(MatchRecord::controlWardsPlaced).average().orElse(0),
+        championsAggregate);
   }
 }

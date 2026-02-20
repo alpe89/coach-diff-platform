@@ -1,8 +1,7 @@
 package com.coachdiff.infrastructure.adapter.in.rest.dto;
 
-import java.util.List;
-
-public record MatchAggregationDto(
+public record ChampionAggregationDto(
+    String championName,
     int gamesAnalyzed,
     int wins,
     int losses,
@@ -33,5 +32,4 @@ public record MatchAggregationDto(
     double avgWardsPlaced,
     double avgWardsKilled,
     double avgControlWardsPlaced,
-    double winRate,
-    List<ChampionAggregationDto> championsAggregate) {}
+    double winRate) {}
