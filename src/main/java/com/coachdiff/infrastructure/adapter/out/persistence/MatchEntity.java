@@ -1,6 +1,6 @@
 package com.coachdiff.infrastructure.adapter.out.persistence;
 
-import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Match;
 import com.coachdiff.domain.model.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -160,7 +160,7 @@ public class MatchRecordEntity {
     return Objects.hash(matchId, puuid);
   }
 
-  public static MatchRecordEntity from(MatchRecord record) {
+  public static MatchRecordEntity from(Match record) {
     return new MatchRecordEntity(
         record.matchId(),
         record.puuid(),
@@ -193,8 +193,8 @@ public class MatchRecordEntity {
         record.xpAt15());
   }
 
-  public static MatchRecord toDomain(MatchRecordEntity entity) {
-    return new MatchRecord(
+  public static Match toDomain(MatchRecordEntity entity) {
+    return new Match(
         entity.matchId,
         entity.puuid,
         entity.win,

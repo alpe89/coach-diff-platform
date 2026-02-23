@@ -1,6 +1,6 @@
 package com.coachdiff.infrastructure.adapter.out;
 
-import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Match;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.FetchMatchDetailsPort;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotMatchDTO;
@@ -28,7 +28,7 @@ public class RiotMatchAdapter implements FetchMatchDetailsPort {
   }
 
   @Override
-  public List<MatchRecord> getMatchRecords(String puuid, List<String> matchIds) {
+  public List<Match> getMatchRecords(String puuid, List<String> matchIds) {
     try (var scope =
         StructuredTaskScope.open(StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow())) {
       StructuredTaskScope.Subtask<List<RiotMatchDTO>> matchDetailsTask =
@@ -62,7 +62,7 @@ public class RiotMatchAdapter implements FetchMatchDetailsPort {
     return matchIds.stream().map(riotMatchClient::getMatchTimelineData).toList();
   }
 
-  private List<MatchRecord> combineToMatchRecords(
+  private List<Match> combineToMatchRecords(
       String puuid,
       List<String> matchIds,
       List<RiotMatchDTO> matchDetails,
@@ -88,7 +88,7 @@ public class RiotMatchAdapter implements FetchMatchDetailsPort {
     return match.info().participants().stream().filter(p -> p.puuid().equals(puuid)).findFirst();
   }
 
-  private MatchRecord toMatchRecord(
+  private Match toMatchRecord(
       String matchId,
       RiotMatchDTO match,
       RiotTimelineDTO timeline,
@@ -118,7 +118,7 @@ public class RiotMatchAdapter implements FetchMatchDetailsPort {
       }
     }
 
-    return new MatchRecord(
+    return new Match(
         matchId,
         puuid,
         p.win(),

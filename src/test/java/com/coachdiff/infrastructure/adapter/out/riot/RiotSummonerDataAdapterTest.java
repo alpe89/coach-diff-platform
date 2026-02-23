@@ -4,7 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.coachdiff.domain.model.SummonerRecord;
+import com.coachdiff.domain.model.Summoner;
 import com.coachdiff.infrastructure.config.RiotProperties;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -55,7 +55,7 @@ public class RiotSummonerDataAdapterTest {
     assertThat(summonerData)
         .isPresent()
         .get()
-        .extracting(SummonerRecord::profileIconURI)
+        .extracting(Summoner::profileIconURI)
         .isEqualTo("https://ddragon.mock.com/16.3.1/img/profileicon/6762.png");
   }
 

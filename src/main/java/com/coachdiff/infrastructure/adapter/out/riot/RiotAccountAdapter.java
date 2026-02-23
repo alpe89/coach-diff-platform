@@ -1,11 +1,11 @@
 package com.coachdiff.infrastructure.adapter.out;
 
-import com.coachdiff.domain.port.out.FetchAccountPort;
+import com.coachdiff.domain.port.out.FetchRiotAccountPort;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RiotAccountAdapter implements FetchAccountPort {
+public class RiotAccountAdapter implements FetchRiotAccountPort {
   private final RiotAccountClient riotAccountClient;
 
   RiotAccountAdapter(RiotAccountClient riotAccountClient) {

@@ -1,7 +1,7 @@
 package com.coachdiff.infrastructure.adapter.out;
 
 import com.coachdiff.domain.model.Division;
-import com.coachdiff.domain.model.RankRecord;
+import com.coachdiff.domain.model.Rank;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.domain.port.out.FetchLeagueDataPort;
 import java.util.Optional;
@@ -16,12 +16,12 @@ public class RiotLeagueDataAdapter implements FetchLeagueDataPort {
   }
 
   @Override
-  public Optional<RankRecord> getLeagueDataByPuuid(String puuid) {
+  public Optional<Rank> getLeagueDataByPuuid(String puuid) {
     var leagueData = client.getRiotLeagueByPuuid(puuid);
 
     return leagueData.map(
         dto ->
-            new RankRecord(
+            new Rank(
                 Tier.valueOf(dto.tier()),
                 Division.valueOf(dto.rank()),
                 dto.leaguePoints(),

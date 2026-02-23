@@ -4,7 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.coachdiff.domain.model.Division;
-import com.coachdiff.domain.model.RankRecord;
+import com.coachdiff.domain.model.Rank;
 import com.coachdiff.domain.model.Tier;
 import com.coachdiff.infrastructure.config.RiotProperties;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -68,12 +68,7 @@ public class RiotLeagueDataAdapterTest {
     assertThat(leagueData)
         .isPresent()
         .get()
-        .extracting(
-            RankRecord::division,
-            RankRecord::tier,
-            RankRecord::lp,
-            RankRecord::wins,
-            RankRecord::losses)
+        .extracting(Rank::division, Rank::tier, Rank::lp, Rank::wins, Rank::losses)
         .containsExactly(Division.I, Tier.GOLD, 30, 7, 6);
   }
 

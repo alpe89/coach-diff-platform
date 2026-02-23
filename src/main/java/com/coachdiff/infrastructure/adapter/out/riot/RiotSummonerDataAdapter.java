@@ -1,6 +1,6 @@
 package com.coachdiff.infrastructure.adapter.out;
 
-import com.coachdiff.domain.model.SummonerRecord;
+import com.coachdiff.domain.model.Summoner;
 import com.coachdiff.domain.port.out.FetchSummonerDataPort;
 import com.coachdiff.infrastructure.adapter.out.dto.RiotSummonerDTO;
 import com.coachdiff.infrastructure.config.RiotProperties;
@@ -18,11 +18,11 @@ public class RiotSummonerDataAdapter implements FetchSummonerDataPort {
   }
 
   @Override
-  public Optional<SummonerRecord> getSummonerDataByPuuid(String puuid) {
+  public Optional<Summoner> getSummonerDataByPuuid(String puuid) {
     return client.getRiotSummonerByPuuid(puuid).map(this::createSummonerRecord);
   }
 
-  private SummonerRecord createSummonerRecord(RiotSummonerDTO dto) {
+  private Summoner createSummonerRecord(RiotSummonerDTO dto) {
     var profileIconURI =
         this.riotDdragon.baseUrl()
             + "/"
@@ -31,6 +31,6 @@ public class RiotSummonerDataAdapter implements FetchSummonerDataPort {
             + dto.profileIconId()
             + ".png";
 
-    return new SummonerRecord(profileIconURI);
+    return new Summoner(profileIconURI);
   }
 }
