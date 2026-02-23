@@ -184,19 +184,23 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 6. ✅ Remake filtering (games < 10 min excluded)
 
 ### Next — Data enrichment
-7. ⬜ Add `role` + `championName` to MatchRecord (Flyway migration + domain + entity + adapter)
-8. ⬜ Champion breakdown in aggregation (per-champion stats alongside overall aggregate)
-9. ⬜ Role-based filtering at aggregation level (only aggregate games matching user's coaching role)
+7. ✅ Add `role` + `championName` to MatchRecord (Flyway migration + domain + entity + adapter)
+8. ✅ Champion breakdown in aggregation (per-champion stats alongside overall aggregate)
+9. ✅ Role-based filtering at aggregation level (only aggregate games matching user's coaching role)
 
 ### Next — Account & benchmarks
 10. ⬜ Account domain (name, tag, coaching role) — replaces hardcoded env vars
 11. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
 
-### Cleanup & infra
-12. ⬜ Remove @Cacheable from match/timeline, clean up CacheConfig (DB replaces cache)
+### Next — LLM Coach (MVP)
+12. ⬜ LLM analysis layer — separate endpoint, API-based (Claude/OpenAI), prompt builder in domain
+13. ⬜ Coach response caching — hash aggregate+benchmark input, persist in DB, invalidate on new data
 
-### Future
-13. ⬜ LLM analysis layer (uses overall aggregate, champion breakdown, individual match context, and rank benchmarks)
+### Cleanup & infra
+14. ⬜ Remove @Cacheable from match/timeline, clean up CacheConfig (DB replaces cache)
+
+### Post-MVP — Explore
+15. ⬜ Replay parsing — explore feasibility of parsing .rofl replay files for granular play-by-play analysis
 
 ---
 

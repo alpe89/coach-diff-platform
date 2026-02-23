@@ -11,3 +11,8 @@ target/
 # Environment
 .env
 **/application-local.yml
+
+# Benchmark crawler output (throwaway data)
+scripts/benchmark_raw.csv
+scripts/benchmark_aggregated.csv
+scripts/benchmark_insert.sql
