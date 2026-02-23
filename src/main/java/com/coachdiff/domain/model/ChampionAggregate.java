@@ -41,9 +41,9 @@ public record ChampionAggregate(
     return (double) wins / gamesAnalyzed;
   }
 
-  public static List<ChampionAggregate> fromMatchRecordList(List<MatchRecord> matchRecords) {
-    Map<String, List<MatchRecord>> byChampion =
-        matchRecords.stream().collect(Collectors.groupingBy(MatchRecord::championName));
+  public static List<ChampionAggregate> fromMatchRecordList(List<Match> matches) {
+    Map<String, List<Match>> byChampion =
+        matches.stream().collect(Collectors.groupingBy(Match::championName));
 
     return byChampion.entrySet().stream()
         .map(entry -> buildChampionAggregate(entry.getKey(), entry.getValue()))
@@ -51,9 +51,9 @@ public record ChampionAggregate(
   }
 
   private static ChampionAggregate buildChampionAggregate(
-      String championName, List<MatchRecord> records) {
+      String championName, List<Match> records) {
     int total = records.size();
-    int wins = (int) records.stream().filter(MatchRecord::win).count();
+    int wins = (int) records.stream().filter(Match::win).count();
 
     return new ChampionAggregate(
         championName,
@@ -61,19 +61,19 @@ public record ChampionAggregate(
         wins,
         total - wins,
         // Combat
-        records.stream().mapToDouble(MatchRecord::kills).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::deaths).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::assists).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::kda).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::soloKills).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::damagePerMinute).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::damagePerGold).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::teamDamagePercentage).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::damageTakenPercentage).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::killParticipation).average().orElse(0),
+        records.stream().mapToDouble(Match::kills).average().orElse(0),
+        records.stream().mapToDouble(Match::deaths).average().orElse(0),
+        records.stream().mapToDouble(Match::assists).average().orElse(0),
+        records.stream().mapToDouble(Match::kda).average().orElse(0),
+        records.stream().mapToDouble(Match::soloKills).average().orElse(0),
+        records.stream().mapToDouble(Match::damagePerMinute).average().orElse(0),
+        records.stream().mapToDouble(Match::damagePerGold).average().orElse(0),
+        records.stream().mapToDouble(Match::teamDamagePercentage).average().orElse(0),
+        records.stream().mapToDouble(Match::damageTakenPercentage).average().orElse(0),
+        records.stream().mapToDouble(Match::killParticipation).average().orElse(0),
         // Economy
-        records.stream().mapToDouble(MatchRecord::goldPerMinute).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::csPerMinute).average().orElse(0),
+        records.stream().mapToDouble(Match::goldPerMinute).average().orElse(0),
+        records.stream().mapToDouble(Match::csPerMinute).average().orElse(0),
         records.stream().mapToDouble(r -> r.csAt10() != null ? r.csAt10() : 0).average().orElse(0),
         records.stream()
             .mapToDouble(r -> r.goldAt10() != null ? r.goldAt10() : 0)
@@ -85,13 +85,13 @@ public record ChampionAggregate(
             .orElse(0),
         records.stream().mapToDouble(r -> r.xpAt15() != null ? r.xpAt15() : 0).average().orElse(0),
         // Objectives
-        records.stream().mapToDouble(MatchRecord::damageToTurrets).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::damageToObjectives).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::turretPlatesTaken).average().orElse(0),
+        records.stream().mapToDouble(Match::damageToTurrets).average().orElse(0),
+        records.stream().mapToDouble(Match::damageToObjectives).average().orElse(0),
+        records.stream().mapToDouble(Match::turretPlatesTaken).average().orElse(0),
         // Vision
-        records.stream().mapToDouble(MatchRecord::visionScorePerMinute).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::wardsPlaced).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::wardsKilled).average().orElse(0),
-        records.stream().mapToDouble(MatchRecord::controlWardsPlaced).average().orElse(0));
+        records.stream().mapToDouble(Match::visionScorePerMinute).average().orElse(0),
+        records.stream().mapToDouble(Match::wardsPlaced).average().orElse(0),
+        records.stream().mapToDouble(Match::wardsKilled).average().orElse(0),
+        records.stream().mapToDouble(Match::controlWardsPlaced).average().orElse(0));
   }
 }

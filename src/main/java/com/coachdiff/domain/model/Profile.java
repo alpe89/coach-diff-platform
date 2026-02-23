@@ -13,8 +13,7 @@ public record Profile(
     int gamesPlayed,
     Double winRate) {
 
-  public static Profile composeProfile(
-      String name, String tag, SummonerRecord summoner, RankRecord rank) {
+  public static Profile composeProfile(String name, String tag, Summoner summoner, Rank rank) {
     var gamesPlayed = rank.wins() + rank.losses();
     var winRate = gamesPlayed == 0 ? 0.0 : (double) rank.wins() / gamesPlayed;
 

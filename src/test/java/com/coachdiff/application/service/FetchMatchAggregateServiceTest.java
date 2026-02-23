@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FetchMatchAggregateServiceTest {
   @Mock private SaveMatchRecordsPort saveMatchRecordsPort;
   @Mock private LoadMatchRecordsPort loadMatchRecordsPort;
-  @Mock private FetchAccountPort fetchAccountPort;
+  @Mock private FetchRiotAccountPort fetchRiotAccountPort;
   @Mock private FetchMatchDetailsPort fetchMatchDetailsPort;
 
   private FetchMatchAggregateService service;
@@ -30,7 +30,7 @@ class FetchMatchAggregateServiceTest {
   void setUp() {
     service =
         new FetchMatchAggregateService(
-            fetchAccountPort,
+            fetchRiotAccountPort,
             fetchMatchDetailsPort,
             loadMatchRecordsPort,
             saveMatchRecordsPort,
@@ -39,7 +39,7 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldReturnMatchAggregate() {
-    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
 
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_1111", "EUW1_1112"));
@@ -53,7 +53,7 @@ class FetchMatchAggregateServiceTest {
 
     var result = service.fetchMatchAggregation(name, tag);
 
-    verify(fetchAccountPort).getPuuid(name, tag);
+    verify(fetchRiotAccountPort).getPuuid(name, tag);
     verify(fetchMatchDetailsPort).getMatchIdsByPuuid("fake-puuid");
     verify(loadMatchRecordsPort)
         .loadExistingMatchRecords("fake-puuid", List.of("EUW1_1111", "EUW1_1112"));
@@ -67,7 +67,7 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldFilterOutRemakes() {
-    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_2001", "EUW1_2002"));
     when(loadMatchRecordsPort.loadExistingMatchRecords(
@@ -88,7 +88,7 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldFilterOutMatchesNotMatchingCoachingRole() {
-    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_4001", "EUW1_4002", "EUW1_4003"));
     when(loadMatchRecordsPort.loadExistingMatchRecords(
@@ -113,7 +113,7 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldNotSaveWhenAllMatchesAreRemakes() {
-    when(fetchAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
+    when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid")).thenReturn(List.of("EUW1_3001"));
     when(loadMatchRecordsPort.loadExistingMatchRecords("fake-puuid", List.of("EUW1_3001")))
         .thenReturn(List.of());

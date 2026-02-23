@@ -1,4 +1,4 @@
-package com.coachdiff.infrastructure.adapter.out;
+package com.coachdiff.infrastructure.adapter.out.riot;
 
 import com.coachdiff.domain.port.out.FetchRiotAccountPort;
 import java.util.Optional;

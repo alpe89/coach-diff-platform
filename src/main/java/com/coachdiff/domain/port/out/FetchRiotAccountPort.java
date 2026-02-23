@@ -2,6 +2,6 @@ package com.coachdiff.domain.port.out;
 
 import java.util.Optional;
 
-public interface FetchAccountPort {
+public interface FetchRiotAccountPort {
   Optional<String> getPuuid(String name, String tag);
 }

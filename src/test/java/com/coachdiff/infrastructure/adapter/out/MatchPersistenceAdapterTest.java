@@ -5,11 +5,11 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.coachdiff.domain.model.MatchRecord;
+import com.coachdiff.domain.model.Match;
+import com.coachdiff.infrastructure.adapter.out.persistence.MatchEntity;
+import com.coachdiff.infrastructure.adapter.out.persistence.MatchId;
 import com.coachdiff.infrastructure.adapter.out.persistence.MatchPersistenceAdapter;
-import com.coachdiff.infrastructure.adapter.out.persistence.MatchRecordEntity;
-import com.coachdiff.infrastructure.adapter.out.persistence.MatchRecordId;
-import com.coachdiff.infrastructure.adapter.out.persistence.MatchRecordRepository;
+import com.coachdiff.infrastructure.adapter.out.persistence.MatchRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class MatchPersistenceAdapterTest {
-  @Mock private MatchRecordRepository repository;
+  @Mock private MatchRepository repository;
 
   private MatchPersistenceAdapter matchPersistenceAdapter;
 
@@ -39,23 +39,23 @@ public class MatchPersistenceAdapterTest {
 
     matchPersistenceAdapter.saveMatchRecords(matchRecordList);
 
-    ArgumentCaptor<List<MatchRecordEntity>> captor = ArgumentCaptor.captor();
+    ArgumentCaptor<List<MatchEntity>> captor = ArgumentCaptor.captor();
     verify(repository).saveAll(captor.capture());
 
     var savedEntities = captor.getValue();
     assertThat(savedEntities).hasSize(3);
-    assertThat(savedEntities.get(0).getId()).isEqualTo(new MatchRecordId("match-1", "puuid"));
-    assertThat(savedEntities.get(1).getId()).isEqualTo(new MatchRecordId("match-2", "puuid"));
-    assertThat(savedEntities.get(2).getId()).isEqualTo(new MatchRecordId("match-3", "puuid"));
+    assertThat(savedEntities.get(0).getId()).isEqualTo(new MatchId("match-1", "puuid"));
+    assertThat(savedEntities.get(1).getId()).isEqualTo(new MatchId("match-2", "puuid"));
+    assertThat(savedEntities.get(2).getId()).isEqualTo(new MatchId("match-3", "puuid"));
   }
 
   @Test
   void shouldReturnEmptyListWhenNoMatchRecords() {
-    List<MatchRecord> emptyList = List.of();
+    List<Match> emptyList = List.of();
 
     matchPersistenceAdapter.saveMatchRecords(emptyList);
 
-    ArgumentCaptor<List<MatchRecordEntity>> captor = ArgumentCaptor.captor();
+    ArgumentCaptor<List<MatchEntity>> captor = ArgumentCaptor.captor();
     verify(repository).saveAll(captor.capture());
 
     var savedEntities = captor.getValue();
@@ -81,7 +81,7 @@ public class MatchPersistenceAdapterTest {
     assertThat(matchRecords.get(1).puuid()).isEqualTo("random-puuid");
   }
 
-  private MatchRecordEntity createMatchRecordEntity(String matchId, String puuid) {
-    return MatchRecordEntity.from(createMatchRecord(matchId, puuid));
+  private MatchEntity createMatchRecordEntity(String matchId, String puuid) {
+    return MatchEntity.from(createMatchRecord(matchId, puuid));
   }
 }

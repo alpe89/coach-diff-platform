@@ -2,8 +2,8 @@ package com.coachdiff.application.service;
 
 import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
+import com.coachdiff.domain.model.Match;
 import com.coachdiff.domain.model.MatchAggregate;
-import com.coachdiff.domain.model.MatchRecord;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.in.FetchMatchAggregatePort;
 import com.coachdiff.domain.port.out.*;
@@ -18,19 +18,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class FetchMatchAggregateService implements FetchMatchAggregatePort {
   private static final Logger log = LoggerFactory.getLogger(FetchMatchAggregateService.class);
-  private final FetchAccountPort fetchAccountPort;
+  private final FetchRiotAccountPort fetchRiotAccountPort;
   private final FetchMatchDetailsPort fetchMatchDetailsPort;
   private final LoadMatchRecordsPort loadMatchRecordsPort;
   private final SaveMatchRecordsPort saveMatchRecordsPort;
   private final Role coachingRole;
 
   FetchMatchAggregateService(
-      FetchAccountPort fetchAccountPort,
+      FetchRiotAccountPort fetchRiotAccountPort,
       FetchMatchDetailsPort fetchMatchDetailsPort,
       LoadMatchRecordsPort loadMatchRecordsPort,
       SaveMatchRecordsPort saveMatchRecordsPort,
       @Value("${coach-diff.coaching-role}") String coachingRole) {
-    this.fetchAccountPort = fetchAccountPort;
+    this.fetchRiotAccountPort = fetchRiotAccountPort;
     this.fetchMatchDetailsPort = fetchMatchDetailsPort;
     this.loadMatchRecordsPort = loadMatchRecordsPort;
     this.saveMatchRecordsPort = saveMatchRecordsPort;
@@ -40,7 +40,7 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
   @Override
   public MatchAggregate fetchMatchAggregation(String name, String tag) {
     var puuid =
-        fetchAccountPort
+        fetchRiotAccountPort
             .getPuuid(name, tag)
             .orElseThrow(
                 () ->
@@ -74,9 +74,8 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
             .toList());
   }
 
-  private List<String> excludeKnownMatchesIds(
-      List<String> matchIds, List<MatchRecord> matchRecords) {
-    var existingIds = matchRecords.stream().map(MatchRecord::matchId).collect(Collectors.toSet());
+  private List<String> excludeKnownMatchesIds(List<String> matchIds, List<Match> matches) {
+    var existingIds = matches.stream().map(Match::matchId).collect(Collectors.toSet());
 
     return matchIds.stream().filter(matchId -> !existingIds.contains(matchId)).toList();
   }

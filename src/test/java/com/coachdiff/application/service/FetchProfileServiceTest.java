@@ -1,7 +1,7 @@
 package com.coachdiff.application.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -9,8 +9,8 @@ import com.coachdiff.domain.exception.LeagueDataNotFoundException;
 import com.coachdiff.domain.exception.SummonerDataNotFoundException;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.*;
-import com.coachdiff.domain.port.out.FetchAccountPort;
 import com.coachdiff.domain.port.out.FetchLeagueDataPort;
+import com.coachdiff.domain.port.out.FetchRiotAccountPort;
 import com.coachdiff.domain.port.out.FetchSummonerDataPort;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -20,20 +20,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class FetchProfileServiceTest {
-  @Mock private FetchAccountPort fetchAccountPort;
+  @Mock private FetchRiotAccountPort fetchRiotAccountPort;
   @Mock private FetchSummonerDataPort fetchSummonerDataPort;
   @Mock private FetchLeagueDataPort fetchLeagueDataPort;
 
   @Test
   void shouldGetProfile() {
-    when(fetchAccountPort.getPuuid(any(), any())).thenReturn(Optional.of("puuid"));
+    when(fetchRiotAccountPort.getPuuid(any(), any())).thenReturn(Optional.of("puuid"));
     when(fetchSummonerDataPort.getSummonerDataByPuuid("puuid"))
-        .thenReturn(Optional.of(new SummonerRecord("https://ddragon.mock.com/profile.png")));
+        .thenReturn(Optional.of(new Summoner("https://ddragon.mock.com/profile.png")));
     when(fetchLeagueDataPort.getLeagueDataByPuuid("puuid"))
-        .thenReturn(Optional.of(new RankRecord(Tier.EMERALD, Division.I, 11, 5, 2)));
+        .thenReturn(Optional.of(new Rank(Tier.EMERALD, Division.I, 11, 5, 2)));
 
     Profile profile =
-        new FetchProfileService(fetchSummonerDataPort, fetchLeagueDataPort, fetchAccountPort)
+        new FetchProfileService(fetchSummonerDataPort, fetchLeagueDataPort, fetchRiotAccountPort)
             .getProfile("aaa", "bbb");
 
     assertThat(profile.name()).isEqualTo("aaa");
@@ -42,37 +42,40 @@ class FetchProfileServiceTest {
   }
 
   @Test
-  void shouldThrowWhenSummonerNotFound() throws SummonerProfileNotFoundException {
-    when(fetchAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.empty());
-    assertThrows(
-        SummonerProfileNotFoundException.class,
-        () ->
-            new FetchProfileService(fetchSummonerDataPort, fetchLeagueDataPort, fetchAccountPort)
-                .getProfile("fake-name", "fake-tag"));
+  void shouldThrowWhenSummonerNotFound() {
+    when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.empty());
+    assertThatThrownBy(
+            () ->
+                new FetchProfileService(
+                        fetchSummonerDataPort, fetchLeagueDataPort, fetchRiotAccountPort)
+                    .getProfile("fake-name", "fake-tag"))
+        .isInstanceOf(SummonerProfileNotFoundException.class);
   }
 
   @Test
-  void shouldThrowWhenLeagueDataNotFound() throws LeagueDataNotFoundException {
-    when(fetchAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
+  void shouldThrowWhenLeagueDataNotFound() {
+    when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
     when(fetchLeagueDataPort.getLeagueDataByPuuid("puuid")).thenReturn(Optional.empty());
-    assertThrows(
-        LeagueDataNotFoundException.class,
-        () ->
-            new FetchProfileService(fetchSummonerDataPort, fetchLeagueDataPort, fetchAccountPort)
-                .getProfile("fake-name", "fake-tag"));
+    assertThatThrownBy(
+            () ->
+                new FetchProfileService(
+                        fetchSummonerDataPort, fetchLeagueDataPort, fetchRiotAccountPort)
+                    .getProfile("fake-name", "fake-tag"))
+        .isInstanceOf(LeagueDataNotFoundException.class);
   }
 
   @Test
-  void shouldThrowWhenSummonerDataNotFound() throws SummonerDataNotFoundException {
-    when(fetchAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
+  void shouldThrowWhenSummonerDataNotFound() {
+    when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
     when(fetchSummonerDataPort.getSummonerDataByPuuid("puuid")).thenReturn(Optional.empty());
     when(fetchLeagueDataPort.getLeagueDataByPuuid("puuid"))
-        .thenReturn(Optional.of(new RankRecord(Tier.EMERALD, Division.I, 11, 5, 2)));
+        .thenReturn(Optional.of(new Rank(Tier.EMERALD, Division.I, 11, 5, 2)));
 
-    assertThrows(
-        SummonerDataNotFoundException.class,
-        () ->
-            new FetchProfileService(fetchSummonerDataPort, fetchLeagueDataPort, fetchAccountPort)
-                .getProfile("fake-name", "fake-tag"));
+    assertThatThrownBy(
+            () ->
+                new FetchProfileService(
+                        fetchSummonerDataPort, fetchLeagueDataPort, fetchRiotAccountPort)
+                    .getProfile("fake-name", "fake-tag"))
+        .isInstanceOf(SummonerDataNotFoundException.class);
   }
 }

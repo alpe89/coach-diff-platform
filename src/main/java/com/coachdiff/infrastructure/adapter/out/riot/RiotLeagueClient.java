@@ -1,4 +1,4 @@
-package com.coachdiff.infrastructure.adapter.out;
+package com.coachdiff.infrastructure.adapter.out.riot;
 
 import com.coachdiff.infrastructure.adapter.out.dto.RiotLeagueDTO;
 import com.coachdiff.infrastructure.config.RiotProperties;

@@ -19,11 +19,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 @Testcontainers
-class MatchRecordRepositoryTest {
+class MatchRepositoryTest {
   @Container @ServiceConnection
   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
 
-  @Autowired private MatchRecordRepository repository;
+  @Autowired private MatchRepository repository;
 
   @Test
   void shouldLoadStoredMatchRecord() {

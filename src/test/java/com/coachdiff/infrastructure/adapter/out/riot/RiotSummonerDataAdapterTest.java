@@ -1,4 +1,4 @@
-package com.coachdiff.infrastructure.adapter.out;
+package com.coachdiff.infrastructure.adapter.out.riot;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;

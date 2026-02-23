@@ -5,11 +5,11 @@ import com.coachdiff.domain.exception.LeagueDataNotFoundException;
 import com.coachdiff.domain.exception.SummonerDataNotFoundException;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.Profile;
-import com.coachdiff.domain.model.RankRecord;
-import com.coachdiff.domain.model.SummonerRecord;
+import com.coachdiff.domain.model.Rank;
+import com.coachdiff.domain.model.Summoner;
 import com.coachdiff.domain.port.in.FetchProfilePort;
-import com.coachdiff.domain.port.out.FetchAccountPort;
 import com.coachdiff.domain.port.out.FetchLeagueDataPort;
+import com.coachdiff.domain.port.out.FetchRiotAccountPort;
 import com.coachdiff.domain.port.out.FetchSummonerDataPort;
 import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
@@ -22,21 +22,21 @@ public class FetchProfileService implements FetchProfilePort {
   private static final Logger log = LoggerFactory.getLogger(FetchProfileService.class);
   private final FetchLeagueDataPort fetchLeagueDataPort;
   private final FetchSummonerDataPort fetchSummonerDataPort;
-  private final FetchAccountPort fetchAccountPort;
+  private final FetchRiotAccountPort fetchRiotAccountPort;
 
   FetchProfileService(
       FetchSummonerDataPort fetchSummonerDataPort,
       FetchLeagueDataPort fetchLeagueDataPort,
-      FetchAccountPort fetchAccountPort) {
+      FetchRiotAccountPort fetchRiotAccountPort) {
     this.fetchSummonerDataPort = fetchSummonerDataPort;
     this.fetchLeagueDataPort = fetchLeagueDataPort;
-    this.fetchAccountPort = fetchAccountPort;
+    this.fetchRiotAccountPort = fetchRiotAccountPort;
   }
 
   @Override
   public Profile getProfile(String name, String tag) {
     var puuid =
-        fetchAccountPort
+        fetchRiotAccountPort
             .getPuuid(name, tag)
             .orElseThrow(
                 () ->
@@ -44,9 +44,9 @@ public class FetchProfileService implements FetchProfilePort {
                         ErrorCode.SUMMONER_NOT_FOUND, "Profile not found for " + name + "#" + tag));
 
     try (var scope = StructuredTaskScope.open()) {
-      StructuredTaskScope.Subtask<Optional<RankRecord>> leagueDataTask =
+      StructuredTaskScope.Subtask<Optional<Rank>> leagueDataTask =
           scope.fork(() -> fetchLeagueDataPort.getLeagueDataByPuuid(puuid));
-      StructuredTaskScope.Subtask<Optional<SummonerRecord>> summonerDataTask =
+      StructuredTaskScope.Subtask<Optional<Summoner>> summonerDataTask =
           scope.fork(() -> fetchSummonerDataPort.getSummonerDataByPuuid(puuid));
 
       scope.join();

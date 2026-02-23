@@ -11,8 +11,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "match_data")
-@IdClass(MatchRecordId.class)
-public class MatchRecordEntity {
+@IdClass(MatchId.class)
+public class MatchEntity {
 
   // Identity
   @Id private String matchId;
@@ -57,9 +57,9 @@ public class MatchRecordEntity {
   @Column private Double goldAt15;
   @Column private Double xpAt15;
 
-  protected MatchRecordEntity() {}
+  protected MatchEntity() {}
 
-  public MatchRecordEntity(
+  public MatchEntity(
       String matchId,
       String puuid,
       boolean win,
@@ -120,8 +120,8 @@ public class MatchRecordEntity {
     this.xpAt15 = xpAt15;
   }
 
-  public MatchRecordId getId() {
-    return new MatchRecordId(matchId, puuid);
+  public MatchId getId() {
+    return new MatchId(matchId, puuid);
   }
 
   public double getKda() {
@@ -151,7 +151,7 @@ public class MatchRecordEntity {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof MatchRecordEntity other)) return false;
+    if (!(o instanceof MatchEntity other)) return false;
     return Objects.equals(matchId, other.matchId) && Objects.equals(puuid, other.puuid);
   }
 
@@ -160,8 +160,8 @@ public class MatchRecordEntity {
     return Objects.hash(matchId, puuid);
   }
 
-  public static MatchRecordEntity from(Match record) {
-    return new MatchRecordEntity(
+  public static MatchEntity from(Match record) {
+    return new MatchEntity(
         record.matchId(),
         record.puuid(),
         record.win(),
@@ -193,7 +193,7 @@ public class MatchRecordEntity {
         record.xpAt15());
   }
 
-  public static Match toDomain(MatchRecordEntity entity) {
+  public static Match toDomain(MatchEntity entity) {
     return new Match(
         entity.matchId,
         entity.puuid,

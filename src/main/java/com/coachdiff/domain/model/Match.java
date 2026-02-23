@@ -1,6 +1,6 @@
 package com.coachdiff.domain.model;
 
-public record MatchRecord(
+public record Match(
     String matchId,
     String puuid,
     boolean win,

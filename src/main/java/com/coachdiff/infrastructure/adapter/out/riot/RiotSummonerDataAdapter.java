@@ -1,4 +1,4 @@
-package com.coachdiff.infrastructure.adapter.out;
+package com.coachdiff.infrastructure.adapter.out.riot;
 
 import com.coachdiff.domain.model.Summoner;
 import com.coachdiff.domain.port.out.FetchSummonerDataPort;

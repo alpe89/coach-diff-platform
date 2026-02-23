@@ -42,8 +42,8 @@ class ProfileTest {
 
   @Test
   void shouldReturnZeroWinRateForZeroGamesPlayed() {
-    var summonerRecord = new SummonerRecord("https://ddragon.url");
-    var rankRecord = new RankRecord(Tier.IRON, Division.III, 0, 0, 0);
+    var summonerRecord = new Summoner("https://ddragon.url");
+    var rankRecord = new Rank(Tier.IRON, Division.III, 0, 0, 0);
 
     var profile = Profile.composeProfile("Random", "#1234", summonerRecord, rankRecord);
 
@@ -53,8 +53,8 @@ class ProfileTest {
   @ParameterizedTest
   @MethodSource("winRateFactory")
   void shouldReturnWinRate(int wins, int losses, double expectedWinRate) {
-    var summonerRecord = new SummonerRecord("https://ddragon.url");
-    var rankRecord = new RankRecord(Tier.IRON, Division.III, 0, wins, losses);
+    var summonerRecord = new Summoner("https://ddragon.url");
+    var rankRecord = new Rank(Tier.IRON, Division.III, 0, wins, losses);
 
     var profile = Profile.composeProfile("Random", "#1234", summonerRecord, rankRecord);
 
