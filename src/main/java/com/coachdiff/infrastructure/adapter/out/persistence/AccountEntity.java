@@ -75,4 +75,14 @@ public class AccountEntity {
         Role.valueOf(entity.getRole()),
         Region.valueOf(entity.getRegion()));
   }
+
+  public static AccountEntity fromDomain(Account account) {
+    return new AccountEntity(
+        null,
+        account.email(),
+        account.name(),
+        account.tag(),
+        account.role().name(),
+        account.region().name());
+  }
 }
