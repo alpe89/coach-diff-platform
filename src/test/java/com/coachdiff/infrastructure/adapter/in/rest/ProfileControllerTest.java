@@ -16,16 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProfileController.class)
-@TestPropertySource(
-    properties = {
-      "coach-diff.default-summoner.name = TestName",
-      "coach-diff.default-summoner.tag = TestTag"
-    })
 public class ProfileControllerTest {
   @Autowired private MockMvc mockMvc;
 
@@ -33,7 +27,7 @@ public class ProfileControllerTest {
 
   @BeforeEach
   void setUp() {
-    when(fetchProfilePort.getProfile("TestName", "TestTag"))
+    when(fetchProfilePort.getProfile("example@email.com"))
         .thenReturn(
             new Profile(
                 "Summoner",
@@ -52,7 +46,7 @@ public class ProfileControllerTest {
   @Test
   public void shouldReturnProfile() throws Exception {
     mockMvc
-        .perform(get("/api/profile"))
+        .perform(get("/api/profile").header("X-User-Email", "example@email.com"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Summoner"))
         .andExpect(jsonPath("$.tag").value("#1234"))
@@ -68,13 +62,13 @@ public class ProfileControllerTest {
 
   @Test
   public void shouldReturnNotFound() throws Exception {
-    when(fetchProfilePort.getProfile(any(), any()))
+    when(fetchProfilePort.getProfile(any()))
         .thenThrow(
             new SummonerProfileNotFoundException(
                 ErrorCode.SUMMONER_NOT_FOUND, "Profile not found"));
 
     mockMvc
-        .perform(get("/api/profile"))
+        .perform(get("/api/profile").header("X-User-Email", "example@email.com"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value(ErrorCode.SUMMONER_NOT_FOUND.name()))
         .andExpect(jsonPath("$.message").value("Profile not found"));

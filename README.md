@@ -39,19 +39,33 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-### 4. Test it
+### 4. Create an account
 
 ```bash
-curl http://localhost:8080/api/profile
-curl http://localhost:8080/api/matches
+curl -X POST http://localhost:8080/api/account \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","name":"YourGameName","tag":"1234","role":"ADC","region":"EUW1"}'
+```
+
+### 5. Test it
+
+```bash
+curl -H "X-User-Email: you@example.com" http://localhost:8080/api/profile
+curl -H "X-User-Email: you@example.com" http://localhost:8080/api/matches
 ```
 
 ## API
+
+All endpoints except `POST /api/account` require the `X-User-Email` header.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/profile` | Summoner profile with rank data |
 | GET | `/api/matches` | Match aggregation stats (last 20 ranked games, current season) |
+| GET | `/api/account` | Get account by email |
+| POST | `/api/account` | Create account |
+| PATCH | `/api/account` | Update account fields |
+| DELETE | `/api/account` | Delete account |
 
 ### Example — Profile
 
@@ -93,7 +107,7 @@ curl http://localhost:8080/api/matches
 src/main/java/com/coachdiff/
 ├── domain/                  # Business logic — no framework dependencies
 │   ├── exception/           # Domain exception hierarchy
-│   ├── model/               # Profile, MatchRecord, MatchAggregate, Tier, Division, etc.
+│   ├── model/               # Profile, Account, MatchRecord, MatchAggregate, Tier, Division, Role, Region
 │   └── port/
 │       ├── in/              # Inbound ports (use cases)
 │       └── out/             # Outbound ports (driven adapters)
@@ -102,7 +116,7 @@ src/main/java/com/coachdiff/
 └── infrastructure/
     ├── adapter/
     │   ├── in/rest/         # REST controllers + exception handlers
-    │   └── out/             # Riot API clients/adapters + persistence
+    │   └── out/             # Riot API clients/adapters + persistence (match + account)
     └── config/              # RestClient, cache, rate limiter configuration
 ```
 

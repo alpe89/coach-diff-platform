@@ -45,7 +45,8 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 ## Current Scope
 
 - Retrieve the **user's own profile** and **match aggregation stats**
-- Summoner name/tag are **hardcoded** (env variables), NOT query parameters
+- **Account domain** stores summoner name, tag, coaching role, and region in DB
+- Endpoints use `X-User-Email` request header for user identification (temporary scaffold until Google OAuth2)
 - Match data is **persisted** in PostgreSQL (Neon in prod, Docker Compose locally)
 - Matches scoped to **current season** via `SEASON_START_EPOCH`
 - NO rank comparison features (yet)
@@ -62,19 +63,19 @@ src/main/java/com/coachdiff/
 ├── Application.java
 ├── domain/
 │   ├── exception/       # DomainNotFoundException hierarchy, ErrorCode
-│   ├── model/           # Profile, MatchRecord, MatchAggregate, RankRecord, SummonerRecord, Tier, Division, Region
+│   ├── model/           # Profile, MatchRecord, MatchAggregate, Account, RankRecord, SummonerRecord, Tier, Division, Region, Role
 │   └── port/
-│       ├── in/          # FetchProfilePort, FetchMatchAggregatePort
-│       └── out/         # FetchAccountPort, FetchLeagueDataPort, FetchSummonerDataPort, FetchMatchDetailsPort, LoadMatchRecordsPort, SaveMatchRecordsPort
+│       ├── in/          # FetchProfilePort, FetchMatchAggregatePort, ManageAccountPort
+│       └── out/         # FetchRiotAccountPort, FetchLeagueDataPort, FetchSummonerDataPort, FetchMatchDetailsPort, LoadMatchRecordsPort, SaveMatchRecordsPort, AccountPersistencePort
 ├── application/
-│   └── service/         # FetchProfileService, FetchMatchAggregateService
+│   └── service/         # FetchProfileService, FetchMatchAggregateService, AccountService
 └── infrastructure/
     ├── adapter/
-    │   ├── in/rest/     # ProfileController, MatchAggregationController, GlobalExceptionHandler, ApiError
+    │   ├── in/rest/     # ProfileController, MatchAggregationController, AccountController, GlobalExceptionHandler, ApiError
     │   └── out/
     │       ├── dto/     # RiotAccountDTO, RiotLeagueDTO, RiotMatchDTO, RiotTimelineDTO, RiotSummonerDTO
     │       ├── exception/ # RiotRateLimitException
-    │       ├── persistence/ # MatchPersistenceAdapter, MatchRecordEntity, MatchRecordRepository
+    │       ├── persistence/ # MatchPersistenceAdapter, MatchRecordEntity, MatchRecordRepository, AccountPersistenceAdapter, AccountEntity, AccountRepository
     │       ├── Riot*Client.java  # RiotAccountClient, RiotMatchClient, RiotLeagueClient, RiotSummonerClient
     │       ├── Riot*Adapter.java # RiotAccountAdapter, RiotMatchAdapter, RiotLeagueDataAdapter, RiotSummonerDataAdapter
     │       └── RiotExceptionHandler.java
@@ -87,10 +88,16 @@ src/main/java/com/coachdiff/
 
 ## API Endpoints
 
+All endpoints except `POST /api/account` require `X-User-Email` request header (temporary until OAuth2).
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/profile` | Summoner profile with rank data |
 | GET | `/api/matches` | Match aggregation stats (last 20 ranked games, current season) |
+| GET | `/api/account` | Get account by email |
+| POST | `/api/account` | Create account |
+| PATCH | `/api/account` | Update account fields |
+| DELETE | `/api/account` | Delete account |
 
 ---
 
@@ -146,9 +153,9 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 
 ## Caching Strategy
 
-**Current: Caffeine in-memory cache** (to be cleaned up — DB persistence makes this redundant for match data)
+**Caffeine in-memory cache:**
 
-- Account details cached via `@Cacheable` (avoid repeated PUUID lookups)
+- Riot Account (PUUID) lookups cached via `@Cacheable` (avoid repeated API calls)
 - Match IDs list is NOT cached (how we detect new games)
 
 ---
@@ -165,7 +172,7 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 - **GCP Cloud Run** for hosting (Docker-based, scales to zero)
 - **GCP Artifact Registry** for Docker images
 - **Neon** for PostgreSQL (serverless, free tier)
-- **GCP Secret Manager** for secrets (RIOT_API_KEY, DB credentials)
+- **GCP Secret Manager** for secrets (RIOT_API_KEY, DB credentials, SEASON_START_EPOCH)
 - **GitHub Actions** for CI/CD:
   - `ci.yml`: `mvn verify` on push to main
   - `deploy.yml`: verify + docker build/push + Cloud Run deploy on tag push (v*)
@@ -188,19 +195,20 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 8. ✅ Champion breakdown in aggregation (per-champion stats alongside overall aggregate)
 9. ✅ Role-based filtering at aggregation level (only aggregate games matching user's coaching role)
 
-### Next — Account & benchmarks
-10. ⬜ Account domain (name, tag, coaching role) — replaces hardcoded env vars
-11. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
+### Done — Account & wiring
+10. ✅ Account domain (name, tag, coaching role, region) with full CRUD
+11. ✅ Wire Account into profile/matches endpoints — `X-User-Email` header replaces hardcoded env vars
+12. ✅ Remove @Cacheable from match/timeline, clean up CacheConfig (already done)
+
+### Next — Benchmarks
+13. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
 
 ### Next — LLM Coach (MVP)
-12. ⬜ LLM analysis layer — separate endpoint, API-based (Claude/OpenAI), prompt builder in domain
-13. ⬜ Coach response caching — hash aggregate+benchmark input, persist in DB, invalidate on new data
-
-### Cleanup & infra
-14. ⬜ Remove @Cacheable from match/timeline, clean up CacheConfig (DB replaces cache)
+14. ⬜ LLM analysis layer — separate endpoint, API-based (Claude/OpenAI), prompt builder in domain
+15. ⬜ Coach response caching — hash aggregate+benchmark input, persist in DB, invalidate on new data
 
 ### Post-MVP — Explore
-15. ⬜ Replay parsing — explore feasibility of parsing .rofl replay files for granular play-by-play analysis
+16. ⬜ Replay parsing — explore feasibility of parsing .rofl replay files for granular play-by-play analysis
 
 ---
 

@@ -4,6 +4,8 @@ import static com.coachdiff.testutil.TestFixtures.createMatchRecord;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.coachdiff.domain.model.Account;
+import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
@@ -20,11 +22,13 @@ class FetchMatchAggregateServiceTest {
   @Mock private LoadMatchRecordsPort loadMatchRecordsPort;
   @Mock private FetchRiotAccountPort fetchRiotAccountPort;
   @Mock private FetchMatchDetailsPort fetchMatchDetailsPort;
+  @Mock private AccountPersistencePort accountPersistencePort;
 
   private FetchMatchAggregateService service;
   private final String name = "test";
   private final String tag = "1234";
   private final String coachingRole = "ADC";
+  private final String email = "example@test.com";
 
   @BeforeEach
   void setUp() {
@@ -34,11 +38,14 @@ class FetchMatchAggregateServiceTest {
             fetchMatchDetailsPort,
             loadMatchRecordsPort,
             saveMatchRecordsPort,
-            coachingRole);
+            accountPersistencePort);
   }
 
   @Test
   void shouldReturnMatchAggregate() {
+    when(accountPersistencePort.loadAccount(email))
+        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
+
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
 
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
@@ -51,8 +58,9 @@ class FetchMatchAggregateServiceTest {
     when(fetchMatchDetailsPort.getMatchRecords("fake-puuid", List.of("EUW1_1112")))
         .thenReturn(List.of(createMatchRecord("EUW1_1112", "fake-puuid")));
 
-    var result = service.fetchMatchAggregation(name, tag);
+    var result = service.fetchMatchAggregation(email);
 
+    verify(accountPersistencePort).loadAccount(email);
     verify(fetchRiotAccountPort).getPuuid(name, tag);
     verify(fetchMatchDetailsPort).getMatchIdsByPuuid("fake-puuid");
     verify(loadMatchRecordsPort)
@@ -67,6 +75,8 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldFilterOutRemakes() {
+    when(accountPersistencePort.loadAccount(email))
+        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_2001", "EUW1_2002"));
@@ -79,7 +89,7 @@ class FetchMatchAggregateServiceTest {
                 createMatchRecord("EUW1_2001", "fake-puuid", 25.0),
                 createMatchRecord("EUW1_2002", "fake-puuid", 3.0)));
 
-    var result = service.fetchMatchAggregation(name, tag);
+    var result = service.fetchMatchAggregation(email);
 
     verify(saveMatchRecordsPort)
         .saveMatchRecords(List.of(createMatchRecord("EUW1_2001", "fake-puuid", 25.0)));
@@ -88,6 +98,8 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldFilterOutMatchesNotMatchingCoachingRole() {
+    when(accountPersistencePort.loadAccount(email))
+        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_4001", "EUW1_4002", "EUW1_4003"));
@@ -102,7 +114,7 @@ class FetchMatchAggregateServiceTest {
                 createMatchRecord("EUW1_4002", "fake-puuid", 25.0, "Lux", Role.SUPPORT),
                 createMatchRecord("EUW1_4003", "fake-puuid", 28.0, "Caitlyn", Role.ADC)));
 
-    var result = service.fetchMatchAggregation(name, tag);
+    var result = service.fetchMatchAggregation(email);
 
     // All 3 matches saved to DB (regardless of role)
     verify(saveMatchRecordsPort).saveMatchRecords(argThat(list -> list.size() == 3));
@@ -113,6 +125,8 @@ class FetchMatchAggregateServiceTest {
 
   @Test
   void shouldNotSaveWhenAllMatchesAreRemakes() {
+    when(accountPersistencePort.loadAccount(email))
+        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid")).thenReturn(List.of("EUW1_3001"));
     when(loadMatchRecordsPort.loadExistingMatchRecords("fake-puuid", List.of("EUW1_3001")))
@@ -120,7 +134,7 @@ class FetchMatchAggregateServiceTest {
     when(fetchMatchDetailsPort.getMatchRecords("fake-puuid", List.of("EUW1_3001")))
         .thenReturn(List.of(createMatchRecord("EUW1_3001", "fake-puuid", 2.5)));
 
-    var result = service.fetchMatchAggregation(name, tag);
+    var result = service.fetchMatchAggregation(email);
 
     verifyNoInteractions(saveMatchRecordsPort);
     assertThat(result.gamesAnalyzed()).isZero();

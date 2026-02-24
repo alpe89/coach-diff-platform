@@ -1,10 +1,10 @@
 package com.coachdiff.application.service;
 
+import com.coachdiff.domain.exception.AccountNotFoundException;
 import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.exception.SummonerProfileNotFoundException;
 import com.coachdiff.domain.model.Match;
 import com.coachdiff.domain.model.MatchAggregate;
-import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.in.FetchMatchAggregatePort;
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,23 +21,36 @@ public class FetchMatchAggregateService implements FetchMatchAggregatePort {
   private final FetchMatchDetailsPort fetchMatchDetailsPort;
   private final LoadMatchRecordsPort loadMatchRecordsPort;
   private final SaveMatchRecordsPort saveMatchRecordsPort;
-  private final Role coachingRole;
+  private final AccountPersistencePort accountPersistencePort;
 
   FetchMatchAggregateService(
       FetchRiotAccountPort fetchRiotAccountPort,
       FetchMatchDetailsPort fetchMatchDetailsPort,
       LoadMatchRecordsPort loadMatchRecordsPort,
       SaveMatchRecordsPort saveMatchRecordsPort,
-      @Value("${coach-diff.coaching-role}") String coachingRole) {
+      AccountPersistencePort accountPersistencePort) {
     this.fetchRiotAccountPort = fetchRiotAccountPort;
     this.fetchMatchDetailsPort = fetchMatchDetailsPort;
     this.loadMatchRecordsPort = loadMatchRecordsPort;
     this.saveMatchRecordsPort = saveMatchRecordsPort;
-    this.coachingRole = Role.valueOf(coachingRole);
+    this.accountPersistencePort = accountPersistencePort;
   }
 
   @Override
-  public MatchAggregate fetchMatchAggregation(String name, String tag) {
+  public MatchAggregate fetchMatchAggregation(String email) {
+    var account =
+        accountPersistencePort
+            .loadAccount(email)
+            .orElseThrow(
+                () ->
+                    new AccountNotFoundException(
+                        ErrorCode.ACCOUNT_DATA_NOT_FOUND,
+                        "Account data for " + email + " was not found"));
+
+    var name = account.name();
+    var tag = account.tag();
+    var coachingRole = account.role();
+
     var puuid =
         fetchRiotAccountPort
             .getPuuid(name, tag)

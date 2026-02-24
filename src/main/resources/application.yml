@@ -25,10 +25,6 @@ logging:
       coachdiff: DEBUG
 
 coach-diff:
-  default-summoner:
-    name: ${DEFAULT_SUMMONER_NAME}
-    tag: ${DEFAULT_SUMMONER_TAG}
-  coaching-role: ${COACHING_ROLE:ADC}
   season-start-epoch: ${SEASON_START_EPOCH:1736294400}
 
 riot:

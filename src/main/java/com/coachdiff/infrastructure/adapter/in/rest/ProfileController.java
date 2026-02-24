@@ -2,9 +2,9 @@ package com.coachdiff.infrastructure.adapter.in.rest;
 
 import com.coachdiff.domain.model.Profile;
 import com.coachdiff.domain.port.in.FetchProfilePort;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,19 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController {
   private final FetchProfilePort fetchProfilePort;
 
-  @Value("${coach-diff.default-summoner.name}")
-  private String summonerName;
-
-  @Value("${coach-diff.default-summoner.tag}")
-  private String summonerTag;
-
   public ProfileController(FetchProfilePort fetchProfilePort) {
     this.fetchProfilePort = fetchProfilePort;
   }
 
   @GetMapping("/profile")
-  public ResponseEntity<Profile> getProfile() {
-    Profile fetchedProfile = fetchProfilePort.getProfile(summonerName, summonerTag);
+  public ResponseEntity<Profile> getProfile(@RequestHeader("X-User-Email") String email) {
+    Profile fetchedProfile = fetchProfilePort.getProfile(email);
 
     return ResponseEntity.ok(fetchedProfile);
   }
