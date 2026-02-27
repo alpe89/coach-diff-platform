@@ -8,9 +8,11 @@ import static org.mockito.Mockito.when;
 
 import com.coachdiff.domain.exception.AccountNotFoundException;
 import com.coachdiff.domain.model.Account;
+import com.coachdiff.domain.model.Permission;
 import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.AccountPersistencePort;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +65,8 @@ public class AccountServiceTest {
     when(accountPersistencePort.loadAccount("email@user.com"))
         .thenReturn(Optional.of(createAccount()));
 
-    var account = new Account(12345L, "email@user.com", "Jhonny", "1234", Role.MID, Region.KR);
+    var account =
+        new Account(12345L, "email@user.com", "Jhonny", "1234", Role.MID, Region.KR, Map.of());
 
     accountService.updateAccount(account);
 
@@ -84,7 +87,8 @@ public class AccountServiceTest {
   void shouldThrowWhenUpdatingNonExistentAccount() {
     when(accountPersistencePort.loadAccount("unknown@email.com")).thenReturn(Optional.empty());
 
-    var account = new Account(12345L, "unknown@email.com", "Jhonny", "1234", Role.MID, Region.KR);
+    var account =
+        new Account(12345L, "unknown@email.com", "Jhonny", "1234", Role.MID, Region.KR, Map.of());
 
     assertThatThrownBy(() -> accountService.updateAccount(account))
         .isInstanceOf(AccountNotFoundException.class);
@@ -109,6 +113,13 @@ public class AccountServiceTest {
   }
 
   private Account createAccount() {
-    return new Account(12345L, "email@user.com", "summoner-name", "1234", Role.JUNGLE, Region.EUW1);
+    return new Account(
+        12345L,
+        "email@user.com",
+        "summoner-name",
+        "1234",
+        Role.JUNGLE,
+        Region.EUW1,
+        Map.of(Permission.BASE_USE, true));
   }
 }

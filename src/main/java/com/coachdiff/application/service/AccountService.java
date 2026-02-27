@@ -35,13 +35,7 @@ public class AccountService implements ManageAccountPort {
   public void updateAccount(Account account) {
     var loadedAccount = loadAccount(account.email());
     var combinedAccount =
-        new Account(
-            loadedAccount.id(),
-            loadedAccount.email(),
-            account.name(),
-            account.tag(),
-            account.role(),
-            account.region());
+        loadedAccount.withUpdates(account.name(), account.tag(), account.role(), account.region());
 
     accountPersistencePort.updateAccount(combinedAccount);
   }

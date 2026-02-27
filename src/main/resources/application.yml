@@ -24,6 +24,10 @@ logging:
     com:
       coachdiff: DEBUG
 
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
 coach-diff:
   season-start-epoch: ${SEASON_START_EPOCH:1736294400}
 

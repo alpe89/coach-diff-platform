@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.coachdiff.domain.model.Account;
+import com.coachdiff.domain.model.Permission;
 import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.out.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,10 @@ class FetchMatchAggregateServiceTest {
   @Test
   void shouldReturnMatchAggregate() {
     when(accountPersistencePort.loadAccount(email))
-        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
+        .thenReturn(
+            Optional.of(
+                new Account(
+                    1L, email, name, tag, Role.ADC, Region.KR, Map.of(Permission.BASE_USE, true))));
 
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
 
@@ -76,7 +81,10 @@ class FetchMatchAggregateServiceTest {
   @Test
   void shouldFilterOutRemakes() {
     when(accountPersistencePort.loadAccount(email))
-        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
+        .thenReturn(
+            Optional.of(
+                new Account(
+                    1L, email, name, tag, Role.ADC, Region.KR, Map.of(Permission.BASE_USE, true))));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_2001", "EUW1_2002"));
@@ -99,7 +107,10 @@ class FetchMatchAggregateServiceTest {
   @Test
   void shouldFilterOutMatchesNotMatchingCoachingRole() {
     when(accountPersistencePort.loadAccount(email))
-        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
+        .thenReturn(
+            Optional.of(
+                new Account(
+                    1L, email, name, tag, Role.ADC, Region.KR, Map.of(Permission.BASE_USE, true))));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid"))
         .thenReturn(List.of("EUW1_4001", "EUW1_4002", "EUW1_4003"));
@@ -126,7 +137,10 @@ class FetchMatchAggregateServiceTest {
   @Test
   void shouldNotSaveWhenAllMatchesAreRemakes() {
     when(accountPersistencePort.loadAccount(email))
-        .thenReturn(Optional.of(new Account(1L, email, name, tag, Role.ADC, Region.KR)));
+        .thenReturn(
+            Optional.of(
+                new Account(
+                    1L, email, name, tag, Role.ADC, Region.KR, Map.of(Permission.BASE_USE, true))));
     when(fetchRiotAccountPort.getPuuid(name, tag)).thenReturn(Optional.of("fake-puuid"));
     when(fetchMatchDetailsPort.getMatchIdsByPuuid("fake-puuid")).thenReturn(List.of("EUW1_3001"));
     when(loadMatchRecordsPort.loadExistingMatchRecords("fake-puuid", List.of("EUW1_3001")))

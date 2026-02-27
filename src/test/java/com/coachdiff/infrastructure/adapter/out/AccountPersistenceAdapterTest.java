@@ -6,11 +6,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.coachdiff.domain.model.Account;
+import com.coachdiff.domain.model.Permission;
 import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.infrastructure.adapter.out.persistence.AccountEntity;
 import com.coachdiff.infrastructure.adapter.out.persistence.AccountPersistenceAdapter;
 import com.coachdiff.infrastructure.adapter.out.persistence.AccountRepository;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +35,15 @@ class AccountPersistenceAdapterTest {
   void shouldLoadAccountByEmail() {
     when(repository.findByEmail("test@email.com"))
         .thenReturn(
-            Optional.of(new AccountEntity(1L, "test@email.com", "Player", "1234", "ADC", "EUW1")));
+            Optional.of(
+                new AccountEntity(
+                    1L,
+                    "test@email.com",
+                    "Player",
+                    "1234",
+                    "ADC",
+                    "EUW1",
+                    Map.of("base_use", true))));
 
     var result = adapter.loadAccount("test@email.com");
 
@@ -56,9 +66,25 @@ class AccountPersistenceAdapterTest {
 
   @Test
   void shouldSaveAccount() {
-    var account = new Account(null, "new@email.com", "NewPlayer", "5678", Role.JUNGLE, Region.EUW1);
+    var account =
+        new Account(
+            null,
+            "new@email.com",
+            "NewPlayer",
+            "5678",
+            Role.JUNGLE,
+            Region.EUW1,
+            Map.of(Permission.BASE_USE, true));
     when(repository.save(any(AccountEntity.class)))
-        .thenReturn(new AccountEntity(1L, "new@email.com", "NewPlayer", "5678", "JUNGLE", "EUW1"));
+        .thenReturn(
+            new AccountEntity(
+                1L,
+                "new@email.com",
+                "NewPlayer",
+                "5678",
+                "JUNGLE",
+                "EUW1",
+                Map.of("base_use", true)));
 
     var result = adapter.saveAccount(account);
 
@@ -69,7 +95,15 @@ class AccountPersistenceAdapterTest {
 
   @Test
   void shouldUpdateAccount() {
-    var account = new Account(1L, "test@email.com", "Updated", "9999", Role.SUPPORT, Region.EUW1);
+    var account =
+        new Account(
+            1L,
+            "test@email.com",
+            "Updated",
+            "9999",
+            Role.SUPPORT,
+            Region.EUW1,
+            Map.of(Permission.BASE_USE, true));
 
     adapter.updateAccount(account);
 

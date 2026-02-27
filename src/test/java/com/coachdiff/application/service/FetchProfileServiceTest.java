@@ -13,6 +13,7 @@ import com.coachdiff.domain.port.out.AccountPersistencePort;
 import com.coachdiff.domain.port.out.FetchLeagueDataPort;
 import com.coachdiff.domain.port.out.FetchRiotAccountPort;
 import com.coachdiff.domain.port.out.FetchSummonerDataPort;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,14 @@ class FetchProfileServiceTest {
     when(accountPersistencePort.loadAccount("example@email.com"))
         .thenReturn(
             Optional.of(
-                new Account(1L, "example@email.com", "Jhonny", "1234", Role.JUNGLE, Region.EUW1)));
+                new Account(
+                    1L,
+                    "example@email.com",
+                    "Jhonny",
+                    "1234",
+                    Role.JUNGLE,
+                    Region.EUW1,
+                    Map.of())));
 
     Profile profile =
         new FetchProfileService(
@@ -57,7 +65,13 @@ class FetchProfileServiceTest {
         .thenReturn(
             Optional.of(
                 new Account(
-                    1L, "example@email.com", "fake-name", "fake-tag", Role.JUNGLE, Region.EUW1)));
+                    1L,
+                    "example@email.com",
+                    "fake-name",
+                    "fake-tag",
+                    Role.JUNGLE,
+                    Region.EUW1,
+                    Map.of())));
     when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.empty());
     assertThatThrownBy(
             () ->
@@ -76,7 +90,13 @@ class FetchProfileServiceTest {
         .thenReturn(
             Optional.of(
                 new Account(
-                    1L, "example@email.com", "fake-name", "fake-tag", Role.JUNGLE, Region.EUW1)));
+                    1L,
+                    "example@email.com",
+                    "fake-name",
+                    "fake-tag",
+                    Role.JUNGLE,
+                    Region.EUW1,
+                    Map.of())));
     when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
     when(fetchLeagueDataPort.getLeagueDataByPuuid("puuid")).thenReturn(Optional.empty());
     assertThatThrownBy(
@@ -96,7 +116,13 @@ class FetchProfileServiceTest {
         .thenReturn(
             Optional.of(
                 new Account(
-                    1L, "example@email.com", "fake-name", "fake-tag", Role.JUNGLE, Region.EUW1)));
+                    1L,
+                    "example@email.com",
+                    "fake-name",
+                    "fake-tag",
+                    Role.JUNGLE,
+                    Region.EUW1,
+                    Map.of())));
     when(fetchRiotAccountPort.getPuuid("fake-name", "fake-tag")).thenReturn(Optional.of("puuid"));
     when(fetchSummonerDataPort.getSummonerDataByPuuid("puuid")).thenReturn(Optional.empty());
     when(fetchLeagueDataPort.getLeagueDataByPuuid("puuid"))

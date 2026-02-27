@@ -13,9 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.coachdiff.domain.exception.AccountNotFoundException;
 import com.coachdiff.domain.exception.ErrorCode;
 import com.coachdiff.domain.model.Account;
+import com.coachdiff.domain.model.Permission;
 import com.coachdiff.domain.model.Region;
 import com.coachdiff.domain.model.Role;
 import com.coachdiff.domain.port.in.ManageAccountPort;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -33,7 +35,14 @@ public class AccountControllerTest {
   void shouldReturnAccount() throws Exception {
     when(manageAccountPort.loadAccount(anyString()))
         .thenReturn(
-            new Account(1L, "test@example.com", "TestName", "TestTag", Role.ADC, Region.EUW1));
+            new Account(
+                1L,
+                "test@example.com",
+                "TestName",
+                "TestTag",
+                Role.ADC,
+                Region.EUW1,
+                Map.of(Permission.BASE_USE, true)));
 
     mockMvc
         .perform(get("/api/account").header("X-User-Email", "test@example.com"))
@@ -63,7 +72,14 @@ public class AccountControllerTest {
   void shouldCreateAccount() throws Exception {
     when(manageAccountPort.saveAccount(any()))
         .thenReturn(
-            new Account(1L, "test@example.com", "TestName", "TestTag", Role.ADC, Region.EUW1));
+            new Account(
+                1L,
+                "test@example.com",
+                "TestName",
+                "TestTag",
+                Role.ADC,
+                Region.EUW1,
+                Map.of(Permission.BASE_USE, true)));
 
     mockMvc
         .perform(
@@ -92,7 +108,14 @@ public class AccountControllerTest {
   void shouldUpdateAccount() throws Exception {
     when(manageAccountPort.loadAccount("email@user.com"))
         .thenReturn(
-            new Account(1L, "email@user.com", "TestName", "TestTag", Role.ADC, Region.EUW1));
+            new Account(
+                1L,
+                "email@user.com",
+                "TestName",
+                "TestTag",
+                Role.ADC,
+                Region.EUW1,
+                Map.of(Permission.BASE_USE, true)));
 
     mockMvc
         .perform(
@@ -115,7 +138,14 @@ public class AccountControllerTest {
   void shouldDeleteAccount() throws Exception {
     when(manageAccountPort.loadAccount("email@user.com"))
         .thenReturn(
-            new Account(1L, "email@user.com", "TestName", "TestTag", Role.ADC, Region.EUW1));
+            new Account(
+                1L,
+                "email@user.com",
+                "TestName",
+                "TestTag",
+                Role.ADC,
+                Region.EUW1,
+                Map.of(Permission.BASE_USE, true)));
 
     mockMvc
         .perform(delete("/api/account").header("X-User-Email", "email@user.com"))
