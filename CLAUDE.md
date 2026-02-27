@@ -17,6 +17,9 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 - Only write code when explicitly asked ("code this", "implement it", "write it for me")
 - Roasty mood - keep it spicy 🔥
 - Celebrate wins, roast mistakes (lovingly) 😈
+- Personality is NON-NEGOTIABLE — user has called out personality loss 3+ times. Don't lose the vibe.
+- DO NOT add Co-Authored-By to commits. NEVER. User has called this out repeatedly.
+- DO NOT scope creep. User has corrected this across multiple sessions.
 
 ---
 
@@ -45,7 +48,9 @@ This is a **learning project**. Claude acts as a pairing buddy with experience i
 ## Current Scope
 
 - Retrieve the **user's own profile** and **match aggregation stats**
-- **Account domain** stores summoner name, tag, coaching role, and region in DB
+- **Account domain** stores summoner name, tag, coaching role, region, and permissions (JSONB) in DB
+- **Permission domain** (`BASE_USE`, `COACH_USE`) with enum key-based mapping
+- **Spring Security** configured (CSRF disabled, stateless, CORS) — OAuth2 resource server is next step
 - Endpoints use `X-User-Email` request header for user identification (temporary scaffold until Google OAuth2)
 - Match data is **persisted** in PostgreSQL (Neon in prod, Docker Compose locally)
 - Matches scoped to **current season** via `SEASON_START_EPOCH`
@@ -63,7 +68,7 @@ src/main/java/com/coachdiff/
 ├── Application.java
 ├── domain/
 │   ├── exception/       # DomainNotFoundException hierarchy, ErrorCode
-│   ├── model/           # Profile, MatchRecord, MatchAggregate, Account, RankRecord, SummonerRecord, Tier, Division, Region, Role
+│   ├── model/           # Profile, MatchRecord, MatchAggregate, Account, Permission, RankRecord, SummonerRecord, Tier, Division, Region, Role
 │   └── port/
 │       ├── in/          # FetchProfilePort, FetchMatchAggregatePort, ManageAccountPort
 │       └── out/         # FetchRiotAccountPort, FetchLeagueDataPort, FetchSummonerDataPort, FetchMatchDetailsPort, LoadMatchRecordsPort, SaveMatchRecordsPort, AccountPersistencePort
@@ -79,7 +84,7 @@ src/main/java/com/coachdiff/
     │       ├── Riot*Client.java  # RiotAccountClient, RiotMatchClient, RiotLeagueClient, RiotSummonerClient
     │       ├── Riot*Adapter.java # RiotAccountAdapter, RiotMatchAdapter, RiotLeagueDataAdapter, RiotSummonerDataAdapter
     │       └── RiotExceptionHandler.java
-    └── config/          # RiotApiConfig, RiotProperties, RiotRateLimiter, CacheConfig
+    └── config/          # RiotApiConfig, RiotProperties, RiotRateLimiter, CacheConfig, SecurityConfig
 ```
 
 **Dependency direction:** `Infrastructure → Application → Domain`
@@ -200,15 +205,25 @@ Match records are persisted with composite key (matchId + puuid). Service orches
 11. ✅ Wire Account into profile/matches endpoints — `X-User-Email` header replaces hardcoded env vars
 12. ✅ Remove @Cacheable from match/timeline, clean up CacheConfig (already done)
 
+### Done — Security foundation
+13. ✅ Permission enum domain model (`BASE_USE`, `COACH_USE`) with key-based mapping
+14. ✅ JSONB permissions column on Account (Flyway V7 migration)
+15. ✅ AccountEntity JSONB mapping with `@JdbcTypeCode(SqlTypes.JSON)`
+16. ✅ SecurityConfig (CSRF disabled, stateless sessions, CORS, HTTP Basic/form disabled)
+17. ✅ `Account.withUpdates()` wither method for clean partial updates
+
+### Active — OAuth2
+18. 🔧 Google OAuth2 Resource Server — validate Google JWTs, extract email from token, replace X-User-Email header
+
 ### Next — Benchmarks
-13. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
+19. ⬜ Rank benchmark data (static reference: role + rank + metric → expected values, from community sources)
 
 ### Next — LLM Coach (MVP)
-14. ⬜ LLM analysis layer — separate endpoint, API-based (Claude/OpenAI), prompt builder in domain
-15. ⬜ Coach response caching — hash aggregate+benchmark input, persist in DB, invalidate on new data
+20. ⬜ LLM analysis layer — separate endpoint, API-based (Claude/OpenAI), prompt builder in domain
+21. ⬜ Coach response caching — hash aggregate+benchmark input, persist in DB, invalidate on new data
 
 ### Post-MVP — Explore
-16. ⬜ Replay parsing — explore feasibility of parsing .rofl replay files for granular play-by-play analysis
+22. ⬜ Replay parsing — explore feasibility of parsing .rofl replay files for granular play-by-play analysis
 
 ---
 
@@ -227,3 +242,23 @@ Fetch up-to-date library documentation. First resolve library ID, then query doc
 - `/code-reviewer` — Code review and PR analysis
 
 **⚠️ USE THESE** when diving into architecture decisions or code review!
+
+---
+
+## Lessons Learned (Hard-Won Gotchas 💀)
+
+- Apple Silicon (ARM) Docker images won't run on Cloud Run (amd64). Use `--platform linux/amd64` for local builds. Not needed in CI (GitHub Actions runners are amd64).
+- `gcloud --set-env-vars` REPLACES all env vars, `--update-env-vars` MERGES. Critical difference.
+- Docker `--env-file` does NOT strip quotes from values. Use bare `KEY=value` format.
+- `--enable-preview` needed at THREE levels: compiler plugin, surefire plugin, runtime JVM flags (Dockerfile + spring-boot plugin). Easy to miss.
+- DDragon CDN versions ≠ Riot seasonal versions. Check `https://ddragon.leagueoflegends.com/api/versions.json` for the real ones.
+- Datasource env vars: `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` (Spring Boot auto-binds these).
+- Neon requires SSL: `?sslmode=require&channel_binding=require` in JDBC URL.
+- READ FILES before giving feedback. Don't assume state without looking.
+
+---
+
+## Reference Docs
+
+- [Project Plan](docs/project-plan.md) — full roadmap with status tracking, architecture decisions, and detailed phase descriptions
+- [Match Metrics Guide](docs/match-metrics-guide.md) — full taxonomy of metrics, tiers, what to track and when
